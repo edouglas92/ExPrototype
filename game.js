@@ -234,9 +234,9 @@ game.update = function(){
 
 game.run = (function(){
 	var loops = 0, 
-		skipTicks = 1000 / 30, //FPS = 30
-		maxFrameSkip = 10,
-		nextGameTick = (new Date).getTime();
+	skipTicks = 1000 / 30, //FPS = 30
+	maxFrameSkip = 10,
+	nextGameTick = (new Date).getTime();
 	return function () {
 		loops = 0;
 		while ((new Date).getTime() > nextGameTick && loops < maxFrameSkip) {
