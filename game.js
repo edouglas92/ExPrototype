@@ -5,6 +5,7 @@ game.clickPrimHub = function(hub, clr){
 		var hubSelected = hub.selected;
 		$.each(game.primaryHubs, function(idx, pHub){
 			pHub.selected = false;
+			pHub.colouring = pHub.colour;
 		});
 		hub.selected = !hubSelected;
 		if (hub.selected && !game.gameOver) {
@@ -77,8 +78,20 @@ game.initializeHub = function(xcoord, ycoord, radius, clr, num){
 		fillRadius: 0,
 		isPrimary: true,
 		fillLayer: clr+"Fill"+num.toString(),
-		countLayer: clr+"Count"+num.toString()
+		countLayer: clr+"Count"+num.toString(),
+		arrowLayer: clr+"Arrow"+num.toString()
 	};
+	$('canvas').drawLine({
+		layer: true, name: hub.arrowLayer,
+  		strokeStyle: hub.colour,
+  		strokeWidth: 4,
+  		visible: false,
+  		rounded: true,
+  		endArrow: true,
+  		arrowRadius: 15,
+  		x1: hub.xpos, y1: hub.ypos,
+  		x2: hub.xpos, y2: hub.ypos
+	});
 	return hub;
 }
 
@@ -231,16 +244,30 @@ game.initialize = function(){
 	});
 };
 
-game.drawHubs = function(){
+game.drawPrimaryHubs = function(){
 	$.each(this.primaryHubs, function(idx, hub){
 		$('canvas').setLayer(hub.fillLayer, {
 			fillStyle: hub.colouring,
   			radius: hub.fillRadius*50
 		})
 		.setLayer(hub.countLayer, {
-				text: hub.units.toString()
+			text: hub.units.toString()
 		});
+		if (hub.connected) {
+			$('canvas').setLayer(hub.arrowLayer, {
+				visible: true,
+				x2: hub.connection.xpos,
+				y2: hub.connection.ypos
+			});
+		} else {
+			$('canvas').setLayer(hub.arrowLayer, {
+				visible: false
+			});
+		}
 	});
+};
+
+game.drawSecondaryHubs = function(){
 	$.each(this.secondaryHubs, function(idx, hub){
 		$('canvas').setLayer(hub.fillLayer, {
 			fillStyle: hub.colouring,
@@ -255,7 +282,24 @@ game.drawHubs = function(){
 		.setLayer(hub.countLayer, {
 			text: hub.colour+": "+hub.units.toString()
 		});
+		if (hub.connected) {
+			console.log(hub.connection.xpos);
+			$('canvas').setLayer(hub.arrowLayer, {
+				visible: true,
+				x2: hub.connection.xpos,
+				y2: hub.connection.ypos
+			});
+		} else {
+			$('canvas').setLayer(hub.arrowLayer, {
+				visible: false
+			});
+		}
 	});
+}
+
+game.drawHubs = function(){
+	this.drawPrimaryHubs();
+	this.drawSecondaryHubs();
 };
 
 game.drawGameOver = function(){
