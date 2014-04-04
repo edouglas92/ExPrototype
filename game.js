@@ -33,7 +33,7 @@ game.clickSecHub = function(hub, clr){
 			var isPrimSelected = false;
 			$.each(game.primaryHubs, function(idx, pHub){
 				if (!pHub.connected && pHub.selected) {
-					if (pHub.colour == hub.primOne) {
+					if (pHub.colour == hub.primOne && !hub.pOneFull) {
 						hub.primOneConnected = true;
 						hub.primOneConnection = pHub;
 						pHub.connected = true;
@@ -41,7 +41,7 @@ game.clickSecHub = function(hub, clr){
 						pHub.selected = false;
 						pHub.colouring = pHub.colour;
 						isPrimSelected = true;
-					} else if (pHub.colour == hub.primTwo) {
+					} else if (pHub.colour == hub.primTwo && !hub.pTwoFull) {
 						hub.primTwoConnected = true;
 						hub.primTwoConnection = pHub;
 						pHub.connected = true;
@@ -71,6 +71,7 @@ game.initializeHub = function(xcoord, ycoord, radius, clr, num){
 		colouring: clr,
 		units: 0,
 		capacity: 50,
+		isFull: false,
 		dropTimer: 25,
 		selected: false,
 		connected: false,
@@ -139,6 +140,8 @@ game.addBlueHub = function(xcoord, ycoord){
 
 game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2, num){
 	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
+	hub.capacity = 10;
+	hub.convertTimer = 10;
 	hub.isPrimary = false;
 	hub.primOne = pclr1;
 	hub.primTwo = pclr2;
@@ -148,6 +151,8 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	hub.primTwoConnected = false;
 	hub.pOneCount = 0;
 	hub.pTwoCount = 0;
+	hub.pOneFull = false;
+	hub.pTwoFull = false;
 	hub.pOneCountLayer = pclr1+"SecCount"+num.toString();
 	hub.pTwoCountLayer = pclr2+"SecCount"+num.toString();
 	$('canvas').drawArc({
@@ -283,7 +288,6 @@ game.drawSecondaryHubs = function(){
 			text: hub.colour+": "+hub.units.toString()
 		});
 		if (hub.connected) {
-			console.log(hub.connection.xpos);
 			$('canvas').setLayer(hub.arrowLayer, {
 				visible: true,
 				x2: hub.connection.xpos,
@@ -324,21 +328,23 @@ game.draw = function(){
 game.updatePrimaryHub = function(pHub){
 	if (this.unitTimer < 0) {
 		pHub.units += 1;
-		if (pHub.units > pHub.capacity) {
+		if (pHub.units == pHub.capacity) {
+			pHub.isFull = true;
 			game.gameOver = true;
 		}
 	}
 	if (pHub.connected) {
 		sHub = pHub.connection;
 		pHub.dropTimer -= 1;
-		if (pHub.dropTimer < 0 && 
-			(sHub.pOneCount + sHub.pTwoCount + 
-				sHub.units < sHub.capacity) && pHub.units > 0) {
-			pHub.dropTimer = 25;
-			pHub.units -= 1;
-			if (sHub.primOneConnection == pHub) {
+		if (pHub.dropTimer < 0) {
+			if (sHub.primOneConnection == pHub && !sHub.pOneFull) {
+				pHub.dropTimer = 25;
+				pHub.units -= 1;
 				sHub.pOneCount += 1;
-			} else {
+			}
+			else if (sHub.primTwoConnection == pHub && !sHub.pTwoFull) {
+				pHub.dropTimer = 25;
+				pHub.units -= 1;
 				sHub.pTwoCount += 1;
 			}
 		}
@@ -346,10 +352,34 @@ game.updatePrimaryHub = function(pHub){
 };
 
 game.updateSecondaryHub = function(sHub){
-	if (sHub.pTwoCount > 0 && sHub.pOneCount > 0) {
+	if (sHub.pOneCount == sHub.capacity) {
+		sHub.pOneFull = true;
+	}
+	if (sHub.pTwoCount == sHub.capacity) {
+		sHub.pTwoFull = true;
+	}
+	if (sHub.units == sHub.capacity) {
+		sHub.isFull = true;
+	}
+	if (sHub.pOneFull && sHub.primOneConnected) {
+		sHub.primOneConnection.connected = false;
+		sHub.primOneConnection.connection = null;
+		sHub.primOneConnection = null;
+		sHub.primOneConnected = false;
+	} else if (sHub.pTwoFull && sHub.primTwoConnected) {
+		sHub.primTwoConnection.connection = null;
+		sHub.primTwoConnection.connected = false;
+		sHub.primTwoConnection = null;
+		sHub.primTwoConnected = false;
+	}
+	sHub.convertTimer -= 1;
+	if (sHub.pTwoCount > 0 && sHub.pOneCount > 0 && sHub.convertTimer < 0 && !sHub.isFull) {
+		sHub.convertTimer = 10;
 		sHub.units += 1;
 		sHub.pOneCount -= 1;
 		sHub.pTwoCount -= 1;
+		sHub.pOneFull = false;
+		sHub.pTwoFull = false;
 	}
 };
 
