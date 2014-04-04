@@ -1,17 +1,67 @@
 var game = { };
 
-game.clickHub = function(hub, clr){
+game.clickPrimHub = function(hub, clr){
 	return function(layer) {
-		hub.selected = !hub.selected;
+		var hubSelected = hub.selected;
+		$.each(game.primaryHubs, function(idx, pHub){
+			pHub.selected = false;
+		});
+		hub.selected = !hubSelected;
 		if (hub.selected && !game.gameOver) {
 			hub.colouring = "dark"+clr;
 		} else if (!game.gameOver) {
+			if (hub.connected) {
+				hub.connected = false;
+				if (hub.connection.primOneConnection == hub) {
+					hub.connection.primOneConnection = null;
+					hub.connection.primOneConnected = false;
+				} else {
+					hub.connection.primTwoConnection = null;
+					hub.connection.primTwoConnected = false;
+				}
+			}
 			hub.colouring = clr;
 		}
 	}
 };
 
-game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
+game.clickSecHub = function(hub, clr){
+	return function(layer) {
+		hub.selected = !hub.selected;
+		if (hub.selected && !game.gameOver) {
+			var isPrimSelected = false;
+			$.each(game.primaryHubs, function(idx, pHub){
+				if (!pHub.connected && pHub.selected) {
+					if (pHub.colour == hub.primOne) {
+						hub.primOneConnected = true;
+						hub.primOneConnection = pHub;
+						pHub.connected = true;
+						pHub.connection = hub;
+						pHub.selected = false;
+						pHub.colouring = pHub.colour;
+						isPrimSelected = true;
+					} else if (pHub.colour == hub.primTwo) {
+						hub.primTwoConnected = true;
+						hub.primTwoConnection = pHub;
+						pHub.connected = true;
+						pHub.connection = sHub
+						pHub.selected = false;
+						pHub.colouring = pHub.colour;
+						isPrimSelected = true;
+					}
+				}
+			});
+			if (!isPrimSelected) {
+				hub.colouring = "dark"+clr;
+			}
+		} else if (!game.gameOver) {
+			hub.connected = false;
+			hub.colouring = clr;
+		}
+	}
+};
+
+game.initializeHub = function(xcoord, ycoord, radius, clr, num){
 	var hub = {
 		xpos: xcoord,
 		ypos: ycoord,
@@ -20,26 +70,34 @@ game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
 		colouring: clr,
 		units: 0,
 		capacity: 50,
-		dropTimer: 40,
+		dropTimer: 25,
 		selected: false,
+		connected: false,
+		connection: null,
 		fillRadius: 0,
+		isPrimary: true,
 		fillLayer: clr+"Fill"+num.toString(),
 		countLayer: clr+"Count"+num.toString()
 	};
+	return hub;
+}
+
+game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
+	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
 	$('canvas').drawArc({
 		layer: true,
 		strokeStyle: hub.colour,
   		strokeWidth: 2,
   		x: hub.xpos, y: hub.ypos,
   		radius: hub.radius,
-  		click: game.clickHub(hub, clr)
+  		click: game.clickPrimHub(hub, clr)
 	})
 	.drawArc({
 		layer: true, name: hub.fillLayer,
 		fillStyle: hub.colouring,
   		x: hub.xpos, y: hub.ypos,
   		radius: hub.fillRadius*50,
-  		click: game.clickHub(hub, clr)
+  		click: game.clickPrimHub(hub, clr)
 	})
 	.drawText({
 		layer: true,
@@ -51,7 +109,7 @@ game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
 		fontSize: 34,
 		fontFamily: 'Arial',
 		text: hub.units.toString(),
-		click: game.clickHub(hub, clr)
+		click: game.clickPrimHub(hub, clr)
 	});
 	return hub
 };
@@ -67,16 +125,33 @@ game.addBlueHub = function(xcoord, ycoord){
 };
 
 game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2, num){
-	var hub = this.initializePrimaryHub(xcoord, ycoord, radius, clr, num);
+	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
+	hub.isPrimary = false;
 	hub.primOne = pclr1;
 	hub.primTwo = pclr2;
 	hub.primOneConnected = false;
+	hub.primOneConnection = null;
+	hub.primTwoConnection = null;
 	hub.primTwoConnected = false;
 	hub.pOneCount = 0;
 	hub.pTwoCount = 0;
 	hub.pOneCountLayer = pclr1+"SecCount"+num.toString();
 	hub.TwoCountLayer = pclr2+"SecCount"+num.toString();
-	$('canvas').removeLayer(hub.countLayer)
+	$('canvas').drawArc({
+		layer: true,
+		strokeStyle: hub.colour,
+  		strokeWidth: 2,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.radius,
+  		click: game.clickSecHub(hub, clr)
+	})
+	.drawArc({
+		layer: true, name: hub.fillLayer,
+		fillStyle: hub.colouring,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.fillRadius*50,
+  		click: game.clickSecHub(hub, clr)
+	})
 	.drawText({
 		layer: true,
 		name: hub.countLayer,
@@ -87,7 +162,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 		fontSize: 20,
 		fontFamily: 'Arial',
 		text: hub.colour+": "+hub.units.toString(),
-		click: game.clickHub(hub, clr)
+		click: game.clickSecHub(hub, clr)
 	})
 	.drawText({
 		layer: true,
@@ -99,7 +174,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 		fontSize: 20,
 		fontFamily: 'Arial',
 		text: hub.primOne+": "+hub.pOneCount.toString(),
-		click: game.clickHub(hub, clr)
+		click: game.clickSecHub(hub, clr)
 	})
 	.drawText({
 		layer: true,
@@ -111,14 +186,14 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 		fontSize: 20,
 		fontFamily: 'Arial',
 		text: hub.primTwo+": "+hub.pTwoCount.toString(),
-		click: game.clickHub(hub, clr)
+		click: game.clickSecHub(hub, clr)
 	});
 	return hub
 };
 
 game.addPurpleHub = function(xcoord, ycoord) {
 	this.purpleHubs += 1;
-	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, 50, "purple", "red", "blue", this.purpleHubs));
+	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, 50, "violet", "red", "blue", this.purpleHubs));
 };
 
 game.initialize = function(){
@@ -127,7 +202,7 @@ game.initialize = function(){
 	this.secondaryHubs = [];
 	this.unitTimer = 25;
 	this.gameOver = false;
-	this.primaryHubTimer = 500;
+	this.primaryHubTimer = 50;
 	this.redHubs = 0;
 	this.blueHubs = 0;
 	this.purpleHubs = 0;
@@ -202,33 +277,59 @@ game.draw = function(){
 	$('canvas').drawLayers();
 };
 
-game.updatePrimaryHubs = function(){
-	this.unitTimer -= 1;
+game.updatePrimaryHub = function(pHub){
 	if (this.unitTimer < 0) {
-		this.unitTimer = 25;
-		$.each(this.primaryHubs, function(idx, pHub){
-			pHub.units += 1
-			if (pHub.units > pHub.capacity) {
-				game.gameOver = true;
-				pHub.colour = 'black';
-			}
-		});
+		pHub.units += 1;
+		if (pHub.units > pHub.capacity) {
+			game.gameOver = true;
+		}
 	}
-	$.each(this.primaryHubs, function(idx, pHub){
-		pHub.fillRadius = Math.min(pHub.units/pHub.radius, 1);
-		if (pHub.selected) {
-			pHub.dropTimer -= 1;
-			if (pHub.dropTimer < 0) {
-				pHub.dropTimer = 40;
-				pHub.units -= 1;
+	if (pHub.connected) {
+		sHub = pHub.connection;
+		pHub.dropTimer -= 1;
+		if (pHub.dropTimer < 0 && 
+			(sHub.pOneCount + sHub.pTwoCount + 
+				sHub.units < sHub.capacity)) {
+			pHub.dropTimer = 40;
+			pHub.units -= 1;
+			if (sHub.primOneConnection == pHub) {
+				sHub.pOneCount += 1;
+			} else {
+				sHub.pTwoCount += 1;
 			}
 		}
-	});
+	}
 };
+
+game.updateSecondaryHub = function(sHub){
+	if (sHub.pTwoCount > 0 && sHub.pOneCount > 0) {
+		sHub.units += 1;
+		sHub.pOneCount -= 1;
+		sHub.pTwoCount -= 1;
+	}
+};
+
+game.updateHubs = function(){
+	this.unitTimer -= 1;
+	var pHubs = this.primaryHubs;
+	var sHubs = this.secondaryHubs;
+	var hubs = pHubs.concat(sHubs);
+	$.each(hubs, function(idx, hub){
+		if (hub.isPrimary){
+			game.updatePrimaryHub(hub);
+		} else {
+			game.updateSecondaryHub(hub);
+		}
+		hub.fillRadius = Math.min(hub.units/hub.radius, 1);
+	});
+	if (this.unitTimer < 0) {
+		this.unitTimer = 25;
+	}
+}
 
 game.update = function(){
 	if (!this.gameOver) {
-		this.updatePrimaryHubs();
+		this.updateHubs();
 	}
 };
 
