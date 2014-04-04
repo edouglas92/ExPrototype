@@ -90,7 +90,7 @@ game.initializeHub = function(xcoord, ycoord, radius, clr, num){
   		strokeWidth: 4,
   		visible: false,
   		rounded: true,
-  		endArrow: true,
+  		startArrow: false,
   		arrowRadius: 15,
   		x1: hub.xpos, y1: hub.ypos,
   		x2: hub.xpos, y2: hub.ypos
@@ -396,6 +396,8 @@ game.updateSecondaryHub = function(sHub){
 			sHub.units += 1;
 			sHub.pOneCount -= 1;
 			sHub.pTwoCount -= 1;
+			sHub.pOneFull = false;
+			sHub.pTwoFull = false;
 		}
 	}
 	if (sHub.pOneCount == sHub.capacity) {
