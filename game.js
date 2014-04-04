@@ -39,6 +39,7 @@ game.clickSecHub = function(hub, clr){
 						pHub.connected = true;
 						pHub.connection = hub;
 						pHub.selected = false;
+						hub.selected = false;
 						pHub.colouring = pHub.colour;
 						isPrimSelected = true;
 					} else if (pHub.colour == hub.primTwo && !hub.pTwoFull) {
@@ -47,6 +48,7 @@ game.clickSecHub = function(hub, clr){
 						pHub.connected = true;
 						pHub.connection = hub
 						pHub.selected = false;
+						hub.selected = false;
 						pHub.colouring = pHub.colour;
 						isPrimSelected = true;
 					}
@@ -98,6 +100,7 @@ game.initializeHub = function(xcoord, ycoord, radius, clr, num){
 
 game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
 	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
+	hub.unitTimer = 25;
 	$('canvas').drawArc({
 		layer: true,
 		strokeStyle: hub.colour,
@@ -117,7 +120,7 @@ game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
 		layer: true,
 		name: hub.countLayer,
 		fillStyle: 'white',
-		strokeStyle: hub.colour,
+		strokeStyle: 'dark'+hub.colour,
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos,
 		fontSize: 34,
@@ -140,8 +143,8 @@ game.addBlueHub = function(xcoord, ycoord){
 
 game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2, num){
 	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
-	hub.capacity = 10;
-	hub.convertTimer = 10;
+	hub.capacity = 50;
+	hub.convertTimer = 40;
 	hub.isPrimary = false;
 	hub.primOne = pclr1;
 	hub.primTwo = pclr2;
@@ -155,6 +158,10 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	hub.pTwoFull = false;
 	hub.pOneCountLayer = pclr1+"SecCount"+num.toString();
 	hub.pTwoCountLayer = pclr2+"SecCount"+num.toString();
+	var clrText = hub.colour;
+	if (clrText == "violet") {
+		clrText = "purple";
+	}
 	$('canvas').drawArc({
 		layer: true,
 		strokeStyle: hub.colour,
@@ -174,22 +181,22 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 		layer: true,
 		name: hub.countLayer,
 		fillStyle: 'white',
-		strokeStyle: hub.colour,
+		strokeStyle: 'dark'+hub.colour,
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos-20,
-		fontSize: 20,
+		fontSize: 18,
 		fontFamily: 'Arial',
-		text: hub.colour+": "+hub.units.toString(),
+		text: clrText+": "+hub.units.toString(),
 		click: game.clickSecHub(hub, clr)
 	})
 	.drawText({
 		layer: true,
 		name: hub.pOneCountLayer,
 		fillStyle: 'white',
-		strokeStyle: hub.primOne,
+		strokeStyle: 'dark'+hub.primOne,
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos,
-		fontSize: 20,
+		fontSize: 18,
 		fontFamily: 'Arial',
 		text: hub.primOne+": "+hub.pOneCount.toString(),
 		click: game.clickSecHub(hub, clr)
@@ -198,10 +205,10 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 		layer: true,
 		name: hub.pTwoCountLayer,
 		fillStyle: 'white',
-		strokeStyle: hub.primTwo,
+		strokeStyle: 'dark'+hub.primTwo,
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos+20,
-		fontSize: 20,
+		fontSize: 18,
 		fontFamily: 'Arial',
 		text: hub.primTwo+": "+hub.pTwoCount.toString(),
 		click: game.clickSecHub(hub, clr)
@@ -218,7 +225,6 @@ game.initialize = function(){
 	$('canvas').removeLayers().clearCanvas();
 	this.primaryHubs = [];
 	this.secondaryHubs = [];
-	this.unitTimer = 25;
 	this.gameOver = false;
 	this.primaryHubTimer = 50;
 	this.redHubs = 0;
@@ -274,6 +280,10 @@ game.drawPrimaryHubs = function(){
 
 game.drawSecondaryHubs = function(){
 	$.each(this.secondaryHubs, function(idx, hub){
+		var clrText = hub.colour;
+		if (clrText == "violet") {
+			clrText = "purple";
+		}
 		$('canvas').setLayer(hub.fillLayer, {
 			fillStyle: hub.colouring,
   			radius: hub.fillRadius*50
@@ -285,7 +295,7 @@ game.drawSecondaryHubs = function(){
 			text: hub.primTwo+": "+hub.pTwoCount.toString()
 		})
 		.setLayer(hub.countLayer, {
-			text: hub.colour+": "+hub.units.toString()
+			text: clrText+": "+hub.units.toString()
 		});
 		if (hub.connected) {
 			$('canvas').setLayer(hub.arrowLayer, {
@@ -326,8 +336,10 @@ game.draw = function(){
 };
 
 game.updatePrimaryHub = function(pHub){
-	if (this.unitTimer < 0) {
+	pHub.unitTimer -= 1;
+	if (pHub.unitTimer < 0) {
 		pHub.units += 1;
+		pHub.unitTimer = 25;
 		if (pHub.units == pHub.capacity) {
 			pHub.isFull = true;
 			game.gameOver = true;
@@ -352,6 +364,13 @@ game.updatePrimaryHub = function(pHub){
 };
 
 game.updateSecondaryHub = function(sHub){
+	sHub.convertTimer -= 1;
+	if (sHub.pTwoCount > 0 && sHub.pOneCount > 0 && sHub.convertTimer < 0 && !sHub.isFull) {
+		sHub.convertTimer = 40;
+		sHub.units += 1;
+		sHub.pOneCount -= 1;
+		sHub.pTwoCount -= 1;
+	}
 	if (sHub.pOneCount == sHub.capacity) {
 		sHub.pOneFull = true;
 	}
@@ -372,19 +391,9 @@ game.updateSecondaryHub = function(sHub){
 		sHub.primTwoConnection = null;
 		sHub.primTwoConnected = false;
 	}
-	sHub.convertTimer -= 1;
-	if (sHub.pTwoCount > 0 && sHub.pOneCount > 0 && sHub.convertTimer < 0 && !sHub.isFull) {
-		sHub.convertTimer = 10;
-		sHub.units += 1;
-		sHub.pOneCount -= 1;
-		sHub.pTwoCount -= 1;
-		sHub.pOneFull = false;
-		sHub.pTwoFull = false;
-	}
 };
 
 game.updateHubs = function(){
-	this.unitTimer -= 1;
 	var pHubs = this.primaryHubs;
 	var sHubs = this.secondaryHubs;
 	var hubs = pHubs.concat(sHubs);
@@ -396,9 +405,6 @@ game.updateHubs = function(){
 		}
 		hub.fillRadius = Math.min(hub.units/hub.radius, 1);
 	});
-	if (this.unitTimer < 0) {
-		this.unitTimer = 40;
-	}
 }
 
 game.update = function(){
