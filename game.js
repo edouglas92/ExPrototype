@@ -44,7 +44,7 @@ game.clickSecHub = function(hub, clr){
 						hub.primTwoConnected = true;
 						hub.primTwoConnection = pHub;
 						pHub.connected = true;
-						pHub.connection = sHub
+						pHub.connection = hub
 						pHub.selected = false;
 						pHub.colouring = pHub.colour;
 						isPrimSelected = true;
@@ -136,7 +136,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	hub.pOneCount = 0;
 	hub.pTwoCount = 0;
 	hub.pOneCountLayer = pclr1+"SecCount"+num.toString();
-	hub.TwoCountLayer = pclr2+"SecCount"+num.toString();
+	hub.pTwoCountLayer = pclr2+"SecCount"+num.toString();
 	$('canvas').drawArc({
 		layer: true,
 		strokeStyle: hub.colour,
@@ -289,8 +289,8 @@ game.updatePrimaryHub = function(pHub){
 		pHub.dropTimer -= 1;
 		if (pHub.dropTimer < 0 && 
 			(sHub.pOneCount + sHub.pTwoCount + 
-				sHub.units < sHub.capacity)) {
-			pHub.dropTimer = 40;
+				sHub.units < sHub.capacity) && pHub.units > 0) {
+			pHub.dropTimer = 25;
 			pHub.units -= 1;
 			if (sHub.primOneConnection == pHub) {
 				sHub.pOneCount += 1;
@@ -323,7 +323,7 @@ game.updateHubs = function(){
 		hub.fillRadius = Math.min(hub.units/hub.radius, 1);
 	});
 	if (this.unitTimer < 0) {
-		this.unitTimer = 25;
+		this.unitTimer = 40;
 	}
 }
 
