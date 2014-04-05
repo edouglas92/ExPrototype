@@ -483,7 +483,7 @@ game.updatePrimaryHub = function(pHub){
 		}
 	}
 	if (pHub.connected && pHub.units > 0) {
-		sHub = pHub.connection;
+		var sHub = pHub.connection;
 		pHub.dropTimer -= 1;
 		if (pHub.dropTimer < 0) {
 			if (sHub.primOneConnection == pHub && !sHub.pOneFull) {
