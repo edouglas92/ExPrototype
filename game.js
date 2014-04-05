@@ -119,8 +119,8 @@ game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
 	.drawText({
 		layer: true,
 		name: hub.countLayer,
-		fillStyle: 'white',
-		strokeStyle: hub.colour,
+		fillStyle: hub.colour,
+		strokeStyle: 'black',
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos,
 		fontSize: 34,
@@ -185,8 +185,8 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	.drawText({
 		layer: true,
 		name: hub.countLayer,
-		fillStyle: 'white',
-		strokeStyle: hub.colour,
+		fillStyle: hub.colour,
+		strokeStyle: 'black',
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos-20,
 		fontSize: 18,
@@ -197,7 +197,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	.drawText({
 		layer: true,
 		name: hub.pOneCountLayer,
-		fillStyle: 'white',
+		fillStyle: hub.primOne,
 		strokeStyle: hub.primOne,
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos,
@@ -209,7 +209,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	.drawText({
 		layer: true,
 		name: hub.pTwoCountLayer,
-		fillStyle: 'white',
+		fillStyle: hub.primTwo,
 		strokeStyle: hub.primTwo,
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos+20,

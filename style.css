@@ -3,14 +3,14 @@
 }
 
 canvas {
-    background-color: #FFFFFF;
+    background-color: #FFEFD5;
     padding: 5px;
     margin: 5px;
     border-width: 5px;
-    border-color: #010101;
+    border-color: #2F4F4F;
     border-style: solid;
 }
 
 body {
-    background-color: #669999;
+    background-color: #7B68EE;
 }
