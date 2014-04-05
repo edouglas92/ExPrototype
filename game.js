@@ -20,6 +20,7 @@ game.clickPrimHub = function(hub, clr){
 					hub.connection.primTwoConnection = null;
 					hub.connection.primTwoConnected = false;
 				}
+				hub.connection = null;
 			}
 			hub.colouring = clr;
 		}
@@ -28,7 +29,12 @@ game.clickPrimHub = function(hub, clr){
 
 game.clickSecHub = function(hub, clr){
 	return function(layer) {
-		hub.selected = !hub.selected;
+		var hubSelected = hub.selected;
+		$.each(game.secondaryHubs, function(idx, sHub){
+			sHub.selected = false;
+			sHub.colouring = sHub.colour;
+		});
+		hub.selected = !hubSelected;
 		if (hub.selected && !game.gameOver) {
 			var isPrimSelected = false;
 			$.each(game.primaryHubs, function(idx, pHub){
@@ -58,8 +64,32 @@ game.clickSecHub = function(hub, clr){
 				hub.colouring = "dark"+clr;
 			}
 		} else if (!game.gameOver) {
-			hub.connected = false;
+			if (hub.connected) {
+				hub.connected = false;
+				hub.connection.connected = false;
+				hub.connection.connection = null;
+				hub.connection = null;
+			}
 			hub.colouring = clr;
+		}
+	}
+};
+
+game.clickTermHub = function(hub, clr){
+	return function(layer) {
+		if (!game.gameOver) {
+			$.each(game.secondaryHubs, function(idx, sHub){
+				if (!sHub.connected && sHub.selected && sHub.units > 0) {
+					if (sHub.colour == hub.colour && !hub.isFull) {
+						hub.connected = true;
+						hub.connection = sHub;
+						sHub.connected = true;
+						sHub.connection = hub;
+						sHub.selected = false;
+						sHub.colouring = sHub.colour;
+					}
+				}
+			});
 		}
 	}
 };
@@ -151,6 +181,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	hub.capacity = 50;
 	hub.convertTimer = 30;
 	hub.isPrimary = false;
+	hub.isSecondary = true;
 	hub.primOne = pclr1;
 	hub.primTwo = pclr2;
 	hub.primOneConnected = false;
@@ -236,10 +267,66 @@ game.addOrangeHub = function(xcoord, ycoord) {
 	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, 50, "orange", "red", "yellow", this.orangeHubs));
 };
 
+game.initializeTerminalHub = function(xcoord, ycoord, radius, clr, num){
+	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
+	hub.dropTimer = 20;
+	hub.capacity = 100;
+	hub.units = hub.capacity;
+	hub.isPrimary = false;
+	hub.isSecondary = false;
+	hub.isTerminal = true;
+	hub.fillLayer = clr+"TFill"+num.toString(),
+	hub.countLayer = clr+"TCount"+num.toString(),
+	$('canvas').drawArc({
+		layer: true,
+		strokeStyle: hub.colour,
+  		strokeWidth: 2,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.radius,
+  		click: game.clickTermHub(hub, clr)
+	})
+	.drawArc({
+		layer: true, name: hub.fillLayer,
+		fillStyle: hub.colouring,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.fillRadius*50,
+  		click: game.clickTermHub(hub, clr)
+	})
+	.drawText({
+		layer: true,
+		name: hub.countLayer,
+		fillStyle: hub.colour,
+		strokeStyle: 'black',
+		strokeWidth: 1,
+		x: hub.xpos, y: hub.ypos,
+		fontSize: 34,
+		fontFamily: 'Arial',
+		text: hub.units.toString(),
+		click: game.clickTermHub(hub, clr)
+	});
+	return hub;
+};
+
+game.addPurpleTerm = function(xcoord, ycoord){
+	this.purpleTerms += 1;
+	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, 50, "violet", this.purpleTerms));
+};
+
+game.addGreenTerm = function(xcoord, ycoord){
+	this.greenTerms += 1;
+	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, 50, "green", this.purpleTerms));
+};
+
+game.addOrangeTerm = function(xcoord, ycoord){
+	this.orangeTerms += 1;
+	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, 50, "orange", this.purpleTerms));
+};
+
 game.initialize = function(){
 	$('canvas').removeLayers().clearCanvas();
 	this.primaryHubs = [];
 	this.secondaryHubs = [];
+	this.terminalHubs = [];
 	this.gameOver = false;
 	this.redHubs = 0;
 	this.blueHubs = 0;
@@ -247,12 +334,18 @@ game.initialize = function(){
 	this.purpleHubs = 0;
 	this.greenHubs = 0;
 	this.orangeHubs = 0;
+	this.purpleTerms = 0;
+	this.greenTerms = 0;
+	this.orangeTerms = 0;
 	this.addRedHub(100, 100);
 	this.addBlueHub(300, 100);
 	this.addYellowHub(500, 100);
 	this.addPurpleHub(200, 300);
 	this.addGreenHub(400, 300);
 	this.addOrangeHub(600, 300);
+	this.addPurpleTerm(100, 500);
+	this.addGreenTerm(300, 500);
+	this.addOrangeTerm(500, 500);
 	$('canvas').drawRect({
 		layer: true,
 		visible: false,
@@ -337,9 +430,22 @@ game.drawSecondaryHubs = function(){
 	});
 };
 
+game.drawTerminals = function(){
+	$.each(this.terminalHubs, function(idx, hub){
+		$('canvas').setLayer(hub.fillLayer, {
+			fillStyle: hub.colour,
+  			radius: hub.fillRadius*50
+		})
+		.setLayer(hub.countLayer, {
+			text: hub.units.toString()
+		});
+	});
+};
+
 game.drawHubs = function(){
 	this.drawPrimaryHubs();
 	this.drawSecondaryHubs();
+	this.drawTerminals();
 };
 
 game.drawGameOver = function(){
@@ -419,17 +525,53 @@ game.updateSecondaryHub = function(sHub){
 		sHub.primTwoConnection = null;
 		sHub.primTwoConnected = false;
 	}
+	if (sHub.connected) {
+		var tHub = sHub.connection;
+		if (sHub.units > 0) {
+			sHub.dropTimer -= 1;
+			if (sHub.dropTimer < 0 && !tHub.isFull) {
+				sHub.dropTimer = 15;
+				sHub.units -= 1;
+				tHub.units += 1;
+			}
+		} else {
+			sHub.connected = false;
+			tHub.connected = false;
+			tHub.connection = null;
+			sHub.connection = null;
+		}
+	}
+};
+
+game.updateTerminalHub = function(tHub){
+	if (tHub.units == 0) {
+		game.gameOver = true;
+	}
+	tHub.dropTimer -= 1;
+	if (tHub.dropTimer < 0 && tHub.units > 0) {
+		tHub.units -= 1;
+		tHub.dropTimer = 20;
+	}
+	if (tHub.isFull && tHub.connected) {
+		tHub.connected = false;
+		tHub.connection.connection = null;
+		tHub.connection.connected = false;
+		thub.connection = null;
+	}
 };
 
 game.updateHubs = function(){
 	var pHubs = this.primaryHubs;
 	var sHubs = this.secondaryHubs;
-	var hubs = pHubs.concat(sHubs);
+	var tHubs = this.terminalHubs;
+	var hubs = pHubs.concat(sHubs).concat(tHubs);
 	$.each(hubs, function(idx, hub){
-		if (hub.isPrimary){
+		if (hub.isPrimary) {
 			game.updatePrimaryHub(hub);
-		} else {
+		} else if (hub.isSecondary) {
 			game.updateSecondaryHub(hub);
+		} else {
+			game.updateTerminalHub(hub);
 		}
 		hub.fillRadius = Math.min(hub.units/hub.radius, 1);
 	});
