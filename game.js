@@ -96,7 +96,7 @@ game.initializeHub = function(xcoord, ycoord, radius, clr, num){
   		x2: hub.xpos, y2: hub.ypos
 	});
 	return hub;
-}
+};
 
 game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
 	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
@@ -241,7 +241,6 @@ game.initialize = function(){
 	this.primaryHubs = [];
 	this.secondaryHubs = [];
 	this.gameOver = false;
-	this.primaryHubTimer = 50;
 	this.redHubs = 0;
 	this.blueHubs = 0;
 	this.yellowHubs = 0;
@@ -336,7 +335,7 @@ game.drawSecondaryHubs = function(){
 			});
 		}
 	});
-}
+};
 
 game.drawHubs = function(){
 	this.drawPrimaryHubs();
@@ -434,7 +433,7 @@ game.updateHubs = function(){
 		}
 		hub.fillRadius = Math.min(hub.units/hub.radius, 1);
 	});
-}
+};
 
 game.update = function(){
 	if (!this.gameOver) {
