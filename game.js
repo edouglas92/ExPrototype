@@ -102,7 +102,7 @@ game.initializeHub = function(xcoord, ycoord, radius, clr, num){
 		colour: clr,
 		colouring: clr,
 		units: 0,
-		capacity: 50,
+		capacity: radius,
 		isFull: false,
 		dropTimer: 15,
 		selected: false,
@@ -161,24 +161,23 @@ game.initializePrimaryHub = function(xcoord, ycoord, radius, clr, num){
 	return hub
 };
 
-game.addRedHub = function(xcoord, ycoord){
+game.addRedHub = function(xcoord, ycoord, radius){
 	this.redHubs += 1;
-	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, 50, "red", this.redHubs));
+	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, radius, "red", this.redHubs));
 };
 
-game.addBlueHub = function(xcoord, ycoord){
+game.addBlueHub = function(xcoord, ycoord, radius){
 	this.blueHubs += 1;
-	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, 50, "blue", this.blueHubs));
+	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, radius, "blue", this.blueHubs));
 };
 
-game.addYellowHub = function(xcoord, ycoord){
+game.addYellowHub = function(xcoord, ycoord, radius){
 	this.yellowHubs += 1;
-	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, 50, "yellow", this.yellowHubs));
+	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, radius, "yellow", this.yellowHubs));
 };
 
 game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2, num){
 	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
-	hub.capacity = 50;
 	hub.convertTimer = 30;
 	hub.isPrimary = false;
 	hub.isSecondary = true;
@@ -198,6 +197,14 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	if (clrText == "violet") {
 		clrText = "purple";
 	}
+	var hubPrimOne = hub.primOne;
+	var hubPrimTwo = hub.primTwo;
+	if (hub.primOne == "yellow") {
+		hubPrimOne = "gold";
+	}
+	if (hub.primTwo == "yellow") {
+		hubPrimTwo = "gold";
+	}
 	$('canvas').drawArc({
 		layer: true,
 		strokeStyle: hub.colour,
@@ -210,7 +217,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 		layer: true, name: hub.fillLayer,
 		fillStyle: hub.colouring,
   		x: hub.xpos, y: hub.ypos,
-  		radius: hub.fillRadius*50,
+  		radius: hub.fillRadius*hub.units,
   		click: game.clickSecHub(hub, clr)
 	})
 	.drawText({
@@ -228,8 +235,8 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	.drawText({
 		layer: true,
 		name: hub.pOneCountLayer,
-		fillStyle: hub.primOne,
-		strokeStyle: hub.primOne,
+		fillStyle: hubPrimOne,
+		strokeStyle: hubPrimOne,
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos,
 		fontSize: 18,
@@ -240,8 +247,8 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	.drawText({
 		layer: true,
 		name: hub.pTwoCountLayer,
-		fillStyle: hub.primTwo,
-		strokeStyle: hub.primTwo,
+		fillStyle: hubPrimTwo,
+		strokeStyle: hubPrimTwo,
 		strokeWidth: 1,
 		x: hub.xpos, y: hub.ypos+20,
 		fontSize: 18,
@@ -252,25 +259,25 @@ game.initializeSecondaryHub = function(xcoord, ycoord, radius, clr, pclr1, pclr2
 	return hub
 };
 
-game.addPurpleHub = function(xcoord, ycoord) {
+game.addPurpleHub = function(xcoord, ycoord, radius) {
 	this.purpleHubs += 1;
-	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, 50, "violet", "red", "blue", this.purpleHubs));
+	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, radius, "violet", "red", "blue", this.purpleHubs));
 };
 
-game.addGreenHub = function(xcoord, ycoord) {
+game.addGreenHub = function(xcoord, ycoord, radius) {
 	this.greenHubs += 1;
-	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, 50, "green", "blue", "yellow", this.greenHubs));
+	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, radius, "green", "blue", "yellow", this.greenHubs));
 };
 
-game.addOrangeHub = function(xcoord, ycoord) {
+game.addOrangeHub = function(xcoord, ycoord, radius) {
 	this.orangeHubs += 1;
-	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, 50, "orange", "red", "yellow", this.orangeHubs));
+	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, radius, "orange", "red", "yellow", this.orangeHubs));
 };
 
 game.initializeTerminalHub = function(xcoord, ycoord, radius, clr, num){
 	var hub = this.initializeHub(xcoord, ycoord, radius, clr, num);
-	hub.dropTimer = 20;
-	hub.capacity = 100;
+	hub.dropTimer = 30;
+	hub.capacity = radius;
 	hub.units = hub.capacity;
 	hub.isPrimary = false;
 	hub.isSecondary = false;
@@ -289,7 +296,7 @@ game.initializeTerminalHub = function(xcoord, ycoord, radius, clr, num){
 		layer: true, name: hub.fillLayer,
 		fillStyle: hub.colouring,
   		x: hub.xpos, y: hub.ypos,
-  		radius: hub.fillRadius*50,
+  		radius: hub.fillRadius*hub.units,
   		click: game.clickTermHub(hub, clr)
 	})
 	.drawText({
@@ -307,19 +314,19 @@ game.initializeTerminalHub = function(xcoord, ycoord, radius, clr, num){
 	return hub;
 };
 
-game.addPurpleTerm = function(xcoord, ycoord){
+game.addPurpleTerm = function(xcoord, ycoord, radius){
 	this.purpleTerms += 1;
-	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, 50, "violet", this.purpleTerms));
+	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, radius, "violet", this.purpleTerms));
 };
 
-game.addGreenTerm = function(xcoord, ycoord){
+game.addGreenTerm = function(xcoord, ycoord, radius){
 	this.greenTerms += 1;
-	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, 50, "green", this.purpleTerms));
+	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, radius, "green", this.purpleTerms));
 };
 
-game.addOrangeTerm = function(xcoord, ycoord){
+game.addOrangeTerm = function(xcoord, ycoord, radius){
 	this.orangeTerms += 1;
-	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, 50, "orange", this.purpleTerms));
+	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, radius, "orange", this.purpleTerms));
 };
 
 game.initialize = function(){
@@ -337,15 +344,15 @@ game.initialize = function(){
 	this.purpleTerms = 0;
 	this.greenTerms = 0;
 	this.orangeTerms = 0;
-	this.addRedHub(100, 100);
-	this.addBlueHub(300, 100);
-	this.addYellowHub(500, 100);
-	this.addPurpleHub(200, 300);
-	this.addGreenHub(400, 300);
-	this.addOrangeHub(600, 300);
-	this.addPurpleTerm(100, 500);
-	this.addGreenTerm(300, 500);
-	this.addOrangeTerm(500, 500);
+	this.addRedHub(100, 100, 50);
+	this.addBlueHub(300, 100, 50);
+	this.addYellowHub(500, 100, 50);
+	this.addPurpleHub(200, 300, 50);
+	this.addGreenHub(400, 300, 50);
+	this.addOrangeHub(600, 300, 50);
+	this.addPurpleTerm(150, 520, 75);
+	this.addGreenTerm(350, 520, 75);
+	this.addOrangeTerm(550, 520, 75);
 	$('canvas').drawRect({
 		layer: true,
 		visible: false,
@@ -378,7 +385,7 @@ game.drawPrimaryHubs = function(){
 		}
 		$('canvas').setLayer(hub.fillLayer, {
 			fillStyle: hubClring,
-  			radius: hub.fillRadius*50
+  			radius: hub.fillRadius*hub.capacity
 		})
 		.setLayer(hub.countLayer, {
 			text: hub.units.toString()
@@ -405,7 +412,7 @@ game.drawSecondaryHubs = function(){
 		}
 		$('canvas').setLayer(hub.fillLayer, {
 			fillStyle: hub.colouring,
-  			radius: hub.fillRadius*50
+  			radius: hub.fillRadius*hub.capacity
 		})
 		.setLayer(hub.pOneCountLayer, {
 			text: hub.primOne+": "+hub.pOneCount.toString()
@@ -434,7 +441,7 @@ game.drawTerminals = function(){
 	$.each(this.terminalHubs, function(idx, hub){
 		$('canvas').setLayer(hub.fillLayer, {
 			fillStyle: hub.colour,
-  			radius: hub.fillRadius*50
+  			radius: hub.fillRadius*hub.units
 		})
 		.setLayer(hub.countLayer, {
 			text: hub.units.toString()
@@ -550,7 +557,7 @@ game.updateTerminalHub = function(tHub){
 	tHub.dropTimer -= 1;
 	if (tHub.dropTimer < 0 && tHub.units > 0) {
 		tHub.units -= 1;
-		tHub.dropTimer = 20;
+		tHub.dropTimer = 30;
 	}
 	if (tHub.isFull && tHub.connected) {
 		tHub.connected = false;
