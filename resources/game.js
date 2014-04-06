@@ -1,6 +1,6 @@
-//////////////////Debugging/Game Logic//////////////////////////
+var game = { };
 
-var timers = {
+game.timers = {
 	primaryUnit: 10,
 	primaryDrop1: 6,
 	primaryDrop2: 8,
@@ -9,19 +9,15 @@ var timers = {
 	terminalDrop: 30
 };
 
-var capacities = {
+game.capacities = {
 	primary: 50,
 	secondary: 50,
 	terminal: 75
 };
 
-var displayCounts = false;
+game.displayCounts = false;
 
-var FPS = 40;
-
-////////////////////////////////////////////////////////////////
-
-var game = { };
+game.FPS = 30;
 
 game.clickPrimHub = function(hub){
 	return function(layer) {
@@ -210,11 +206,11 @@ game.initializeHub = function(xcoord, ycoord, cap, clr, num){
 
 game.initializePrimaryHub = function(xcoord, ycoord, cap, clr, num){
 	var hub = this.initializeHub(xcoord, ycoord, cap, clr, num);
-	hub.unitTimer = timers.primaryUnit;
+	hub.unitTimer = this.timers.primaryUnit;
 	hub.connected2 = false;
 	hub.connection2 = null;
-	hub.dropTimer = timers.primaryDrop1;
-	hub.dropTimer2 = timers.primaryDrop2;
+	hub.dropTimer = this.timers.primaryDrop1;
+	hub.dropTimer2 = this.timers.primaryDrop2;
 	$('canvas').drawLine({
 		layer: true, name: hub.arrowLayer+"2",
   		strokeStyle: hub.colour,
@@ -251,7 +247,7 @@ game.initializePrimaryHub = function(xcoord, ycoord, cap, clr, num){
 		x: hub.xpos, y: hub.ypos,
 		fontSize: 34,
 		fontFamily: 'Arial',
-		visible: displayCounts,
+		visible: game.displayCounts,
 		text: hub.units.toString(),
 		click: game.clickPrimHub(hub)
 	});
@@ -278,8 +274,8 @@ game.addYellowHub = function(xcoord, ycoord, cap){
 
 game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, pclr1, pclr2, num){
 	var hub = this.initializeHub(xcoord, ycoord, cap, clr, num);
-	hub.convertTimer = timers.secondaryConvert;
-	hub.dropTimer = timers.secondaryDrop;
+	hub.convertTimer = this.timers.secondaryConvert;
+	hub.dropTimer = this.timers.secondaryDrop;
 	hub.isPrimary = false;
 	hub.isSecondary = true;
 	hub.primOne = pclr1;
@@ -350,7 +346,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, pclr1, pclr2, n
 		x: hub.xpos, y: hub.ypos-20,
 		fontSize: 18,
 		fontFamily: 'Arial',
-		visible: displayCounts,
+		visible: game.displayCounts,
 		text: clrText+": "+hub.units.toString(),
 		click: game.clickSecHub(hub)
 	})
@@ -363,7 +359,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, pclr1, pclr2, n
 		x: hub.xpos, y: hub.ypos,
 		fontSize: 18,
 		fontFamily: 'Arial',
-		visible: displayCounts,
+		visible: game.displayCounts,
 		text: hub.primOne+": "+hub.pOneCount.toString(),
 		click: game.clickSecHub(hub)
 	})
@@ -376,7 +372,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, pclr1, pclr2, n
 		x: hub.xpos, y: hub.ypos+20,
 		fontSize: 18,
 		fontFamily: 'Arial',
-		visible: displayCounts,
+		visible: game.displayCounts,
 		text: hub.primTwo+": "+hub.pTwoCount.toString(),
 		click: game.clickSecHub(hub)
 	});
@@ -403,7 +399,7 @@ game.addOrangeHub = function(xcoord, ycoord, cap) {
 
 game.initializeTerminalHub = function(xcoord, ycoord, cap, clr, num){
 	var hub = this.initializeHub(xcoord, ycoord, cap, clr, num);
-	hub.dropTimer = timers.terminalDrop;
+	hub.dropTimer = this.timers.terminalDrop;
 	hub.capacity = cap;
 	hub.units = hub.capacity;
 	hub.fillRadius = hub.radius;
@@ -436,7 +432,7 @@ game.initializeTerminalHub = function(xcoord, ycoord, cap, clr, num){
 		x: hub.xpos, y: hub.ypos,
 		fontSize: 34,
 		fontFamily: 'Arial',
-		visible: displayCounts,
+		visible: game.displayCounts,
 		text: hub.units.toString(),
 		click: game.clickTermHub(hub)
 	});
@@ -463,6 +459,8 @@ game.addOrangeTerm = function(xcoord, ycoord, cap){
 
 game.initialize = function(){
 	$('canvas').removeLayers().clearCanvas();
+	this.drawPending = false;
+	this.skipTicks = 0;
 	this.primaryHubs = [];
 	this.secondaryHubs = [];
 	this.terminalHubs = [];
@@ -478,15 +476,15 @@ game.initialize = function(){
 	this.purpleTerms = 0;
 	this.greenTerms = 0;
 	this.orangeTerms = 0;
-	this.addRedHub(100, 100, capacities.primary);
-	this.addBlueHub(300, 100, capacities.primary);
-	this.addYellowHub(500, 100, capacities.primary);
-	this.addPurpleHub(200, 300, capacities.secondary);
-	this.addGreenHub(400, 300, capacities.secondary);
-	this.addOrangeHub(600, 300, capacities.secondary);
-	this.addPurpleTerm(150, 520, capacities.terminal);
-	this.addGreenTerm(350, 520, capacities.terminal);
-	this.addOrangeTerm(550, 520, capacities.terminal);
+	this.addRedHub(100, 100, this.capacities.primary);
+	this.addBlueHub(300, 100, this.capacities.primary);
+	this.addYellowHub(500, 100, this.capacities.primary);
+	this.addPurpleHub(200, 300, this.capacities.secondary);
+	this.addGreenHub(400, 300, this.capacities.secondary);
+	this.addOrangeHub(600, 300, this.capacities.secondary);
+	this.addPurpleTerm(150, 520, this.capacities.terminal);
+	this.addGreenTerm(350, 520, this.capacities.terminal);
+	this.addOrangeTerm(550, 520, this.capacities.terminal);
 	$('canvas').drawRect({
 		layer: true,
 		visible: false,
@@ -544,7 +542,7 @@ game.initialize = function(){
 		x: 1005, y: 11,
 		fontSize: 18,
 		fontFamily: 'Arial',
-		text: "Time: "+Math.floor(game.totalTime/FPS).toString()
+		text: "Time: "+Math.floor(game.totalTime/game.FPS).toString()
 	});
 };
 
@@ -658,15 +656,23 @@ game.drawGameOver = function(){
 			x: 575, y: 325
 		});
 	}
-};
+};	
 
 game.draw = function(){
-	this.drawHubs();
-	this.drawGameOver();
+	game.drawPending = false;
+	game.drawHubs();
+	game.drawGameOver();
 	$('canvas').setLayer("timerText", {
-		text: "Time: "+Math.floor(game.totalTime/FPS).toString()
+		text: "Time: "+Math.floor(game.totalTime/game.FPS).toString()
 	})
 	.drawLayers();
+};
+
+game.requestRedraw = function(){
+	if (!this.drawPending) {
+		this.drawPending = true;
+		requestAnimationFrame(this.draw);
+	}
 };
 
 game.updatePrimaryHub = function(pHub){
@@ -699,7 +705,7 @@ game.updatePrimaryHub = function(pHub){
 	pHub.unitTimer -= 1;
 	if ((pHub.unitTimer < 0) && !pHub.isFull) {
 		pHub.units += 1;
-		pHub.unitTimer = timers.primaryUnit;
+		pHub.unitTimer = this.timers.primaryUnit;
 		if (pHub.units == pHub.capacity) {
 			pHub.isFull = true;
 		}
@@ -708,7 +714,7 @@ game.updatePrimaryHub = function(pHub){
 		var sHub = pHub.connection;
 		pHub.dropTimer -= 1;
 		if (pHub.dropTimer < 0) {
-			pHub.dropTimer = timers.primaryDrop1;
+			pHub.dropTimer = this.timers.primaryDrop1;
 			pHub.units -= 1;
 			pHub.isFull = false;
 			if ((sHub.primOneConnection == pHub) && !sHub.pOneFull) {
@@ -723,7 +729,7 @@ game.updatePrimaryHub = function(pHub){
 		var sHub = pHub.connection2;
 		pHub.dropTimer2 -= 1;
 		if (pHub.dropTimer2 < 0) {
-			pHub.dropTimer2 = timers.primaryDrop2;
+			pHub.dropTimer2 = this.timers.primaryDrop2;
 			pHub.units -= 1;
 			pHub.isFull = false;
 			if ((sHub.primOneConnection == pHub) && !sHub.pOneFull) {
@@ -749,7 +755,7 @@ game.updateSecondaryHub = function(sHub){
 	if ((sHub.pTwoCount > 0) && (sHub.pOneCount > 0)) {
 		sHub.convertTimer -= 1;
 		if ((sHub.convertTimer < 0) && !sHub.isFull) {
-			sHub.convertTimer = timers.secondaryConvert;
+			sHub.convertTimer = this.timers.secondaryConvert;
 			sHub.units += 1;
 			sHub.pOneCount -= 1;
 			sHub.pTwoCount -= 1;
@@ -786,7 +792,7 @@ game.updateSecondaryHub = function(sHub){
 		if (sHub.units > 0) {
 			sHub.dropTimer -= 1;
 			if ((sHub.dropTimer < 0) && !tHub.isFull) {
-				sHub.dropTimer = timers.secondaryDrop;
+				sHub.dropTimer = this.timers.secondaryDrop;
 				sHub.units -= 1;
 				tHub.units += 1;
 				sHub.isFull = false;
@@ -812,14 +818,14 @@ game.updateTerminalHub = function(tHub){
 	tHub.dropTimer -= 1;
 	if (tHub.dropTimer < 0 && tHub.units > 0) {
 		tHub.units -= 1;
-		tHub.dropTimer = timers.terminalDrop;
+		tHub.dropTimer = this.timers.terminalDrop;
 		tHub.isFull = false;
 	}
 	if (tHub.isFull && tHub.connected) {
 		tHub.connected = false;
 		tHub.connection.connection = null;
 		tHub.connection.connected = false;
-		thub.connection = null;
+		tHub.connection = null;
 	}
 };
 
@@ -849,7 +855,7 @@ game.update = function(){
 
 game.run = (function(){
 	var loops = 0, 
-	skipTicks = 1000 / FPS,
+	skipTicks = 1000 / game.FPS,
 	maxFrameSkip = 10,
 	nextGameTick = (new Date).getTime();
 	return function () {
@@ -859,7 +865,7 @@ game.run = (function(){
 			nextGameTick += skipTicks;
 			loops++;
 		}
-		game.draw();
+		if (loops) game.requestRedraw();
 	};
 })();
 
