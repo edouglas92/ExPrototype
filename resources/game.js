@@ -17,6 +17,8 @@ var capacities = {
 
 var displayCounts = false;
 
+var FPS = 40;
+
 ////////////////////////////////////////////////////////////////
 
 var game = { };
@@ -464,6 +466,7 @@ game.initialize = function(){
 	this.primaryHubs = [];
 	this.secondaryHubs = [];
 	this.terminalHubs = [];
+	this.totalTime = 0;
 	this.gameOver = false;
 	this.paused = false;
 	this.redHubs = 0;
@@ -512,7 +515,7 @@ game.initialize = function(){
 		fillStyle: 'white',
 		strokeStyle: 'silver',
 		strokeWidth: 2,
-		x: 1100, y: 15,
+		x: 1100, y: 14,
 		fontSize: 32,
 		fontFamily: 'Arial',
 		text: "Pause",
@@ -531,6 +534,17 @@ game.initialize = function(){
 				});
 			}
 		}
+	})
+	.drawText({
+		layer: true,
+		name: "timerText",
+		fillStyle: 'white',
+		strokeStyle: 'black',
+		strokeWidth: 1,
+		x: 1005, y: 11,
+		fontSize: 18,
+		fontFamily: 'Arial',
+		text: "Time: "+Math.floor(game.totalTime/FPS).toString()
 	});
 };
 
@@ -649,7 +663,10 @@ game.drawGameOver = function(){
 game.draw = function(){
 	this.drawHubs();
 	this.drawGameOver();
-	$('canvas').drawLayers();
+	$('canvas').setLayer("timerText", {
+		text: "Time: "+Math.floor(game.totalTime/FPS).toString()
+	})
+	.drawLayers();
 };
 
 game.updatePrimaryHub = function(pHub){
@@ -815,13 +832,14 @@ game.updateHubs = function(){
 
 game.update = function(){
 	if (!this.gameOver && !this.paused) {
+		this.totalTime += 1;
 		this.updateHubs();
 	}
 };
 
 game.run = (function(){
 	var loops = 0, 
-	skipTicks = 1000 / 40, //FPS = 40
+	skipTicks = 1000 / FPS,
 	maxFrameSkip = 10,
 	nextGameTick = (new Date).getTime();
 	return function () {
