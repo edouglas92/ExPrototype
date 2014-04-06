@@ -1,3 +1,5 @@
+//////////////////Debugging/Game Logic//////////////////////////
+
 var timers = {
 	primaryUnit: 10,
 	primaryDrop1: 6,
@@ -7,7 +9,15 @@ var timers = {
 	terminalDrop: 30
 };
 
+var capacities = {
+	primary: 50,
+	secondary: 50,
+	terminal: 75
+};
+
 var displayCounts = false;
+
+////////////////////////////////////////////////////////////////
 
 var game = { };
 
@@ -248,17 +258,20 @@ game.initializePrimaryHub = function(xcoord, ycoord, cap, clr, num){
 
 game.addRedHub = function(xcoord, ycoord, cap){
 	this.redHubs += 1;
-	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, cap, "red", this.redHubs));
+	this.primaryHubs.push(this.initializePrimaryHub(
+		xcoord, ycoord, cap, "red", this.redHubs));
 };
 
 game.addBlueHub = function(xcoord, ycoord, cap){
 	this.blueHubs += 1;
-	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, cap, "blue", this.blueHubs));
+	this.primaryHubs.push(this.initializePrimaryHub(
+		xcoord, ycoord, cap, "blue", this.blueHubs));
 };
 
 game.addYellowHub = function(xcoord, ycoord, cap){
 	this.yellowHubs += 1;
-	this.primaryHubs.push(this.initializePrimaryHub(xcoord, ycoord, cap, "yellow", this.yellowHubs));
+	this.primaryHubs.push(this.initializePrimaryHub(
+		xcoord, ycoord, cap, "yellow", this.yellowHubs));
 };
 
 game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, pclr1, pclr2, num){
@@ -370,17 +383,20 @@ game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, pclr1, pclr2, n
 
 game.addPurpleHub = function(xcoord, ycoord, cap) {
 	this.purpleHubs += 1;
-	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, cap, "violet", "red", "blue", this.purpleHubs));
+	this.secondaryHubs.push(this.initializeSecondaryHub(
+		xcoord, ycoord, cap, "violet", "red", "blue", this.purpleHubs));
 };
 
 game.addGreenHub = function(xcoord, ycoord, cap) {
 	this.greenHubs += 1;
-	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, cap, "green", "blue", "yellow", this.greenHubs));
+	this.secondaryHubs.push(this.initializeSecondaryHub(
+		xcoord, ycoord, cap, "green", "blue", "yellow", this.greenHubs));
 };
 
 game.addOrangeHub = function(xcoord, ycoord, cap) {
 	this.orangeHubs += 1;
-	this.secondaryHubs.push(this.initializeSecondaryHub(xcoord, ycoord, cap, "orange", "red", "yellow", this.orangeHubs));
+	this.secondaryHubs.push(this.initializeSecondaryHub(
+		xcoord, ycoord, cap, "orange", "red", "yellow", this.orangeHubs));
 };
 
 game.initializeTerminalHub = function(xcoord, ycoord, cap, clr, num){
@@ -427,17 +443,20 @@ game.initializeTerminalHub = function(xcoord, ycoord, cap, clr, num){
 
 game.addPurpleTerm = function(xcoord, ycoord, cap){
 	this.purpleTerms += 1;
-	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, cap, "violet", this.purpleTerms));
+	this.terminalHubs.push(this.initializeTerminalHub(
+		xcoord, ycoord, cap, "violet", this.purpleTerms));
 };
 
 game.addGreenTerm = function(xcoord, ycoord, cap){
 	this.greenTerms += 1;
-	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, cap, "green", this.purpleTerms));
+	this.terminalHubs.push(this.initializeTerminalHub(
+		xcoord, ycoord, cap, "green", this.purpleTerms));
 };
 
 game.addOrangeTerm = function(xcoord, ycoord, cap){
 	this.orangeTerms += 1;
-	this.terminalHubs.push(this.initializeTerminalHub(xcoord, ycoord, cap, "orange", this.purpleTerms));
+	this.terminalHubs.push(this.initializeTerminalHub(
+		xcoord, ycoord, cap, "orange", this.purpleTerms));
 };
 
 game.initialize = function(){
@@ -456,15 +475,15 @@ game.initialize = function(){
 	this.purpleTerms = 0;
 	this.greenTerms = 0;
 	this.orangeTerms = 0;
-	this.addRedHub(100, 100, 50);
-	this.addBlueHub(300, 100, 50);
-	this.addYellowHub(500, 100, 50);
-	this.addPurpleHub(200, 300, 50);
-	this.addGreenHub(400, 300, 50);
-	this.addOrangeHub(600, 300, 50);
-	this.addPurpleTerm(150, 520, 75);
-	this.addGreenTerm(350, 520, 75);
-	this.addOrangeTerm(550, 520, 75);
+	this.addRedHub(100, 100, capacities.primary);
+	this.addBlueHub(300, 100, capacities.primary);
+	this.addYellowHub(500, 100, capacities.primary);
+	this.addPurpleHub(200, 300, capacities.secondary);
+	this.addGreenHub(400, 300, capacities.secondary);
+	this.addOrangeHub(600, 300, capacities.secondary);
+	this.addPurpleTerm(150, 520, capacities.terminal);
+	this.addGreenTerm(350, 520, capacities.terminal);
+	this.addOrangeTerm(550, 520, capacities.terminal);
 	$('canvas').drawRect({
 		layer: true,
 		visible: false,
