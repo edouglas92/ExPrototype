@@ -483,7 +483,6 @@ game.addOrangeTerm = function(xcoord, ycoord, cap){
 game.initialize = function(){
 	$('canvas').removeLayers().clearCanvas();
 	this.drawPending = false;
-	this.skipTicks = 0;
 	this.primaryHubs = [];
 	this.secondaryHubs = [];
 	this.terminalHubs = [];
