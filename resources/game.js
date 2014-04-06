@@ -16,7 +16,8 @@ game.timers = {
 game.capacities = {
 	primary: 50,
 	secondary: 50,
-	terminal: 75
+	terminal: 75,
+	hubRadius: 45
 };
 
 game.colors = {
@@ -197,7 +198,7 @@ game.initializeHub = function(xcoord, ycoord, cap, clr, sClr, num){
 	var hub = {
 		xpos: xcoord,
 		ypos: ycoord,
-		radius: 50,
+		radius: this.capacities.hubRadius,
 		colour: clr,
 		colouring: clr,
 		sColouring: sClr,
@@ -332,7 +333,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, sClr, pclr1, pc
 	})
 	.drawArc({
 		layer: true, name: hub.pOneLayer,
-		opacity: 0.4,
+		opacity: 0.35,
 		fillStyle: hub.primOne,
   		x: hub.xpos, y: hub.ypos,
   		radius: hub.pOneFill,
