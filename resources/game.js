@@ -1,13 +1,13 @@
 var timers = {
-	primaryUnit: 4,
-	primaryDrop1: 5,
-	primaryDrop2: 5,
-	secondaryConvert: 5,
-	secondaryDrop: 3,
-	terminalDrop: 100
+	primaryUnit: 10,
+	primaryDrop1: 6,
+	primaryDrop2: 8,
+	secondaryConvert: 7,
+	secondaryDrop: 5,
+	terminalDrop: 30
 };
 
-var displayCounts = true;
+var displayCounts = false;
 
 var game = { };
 
@@ -277,6 +277,10 @@ game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, pclr1, pclr2, n
 	hub.pTwoCount = 0;
 	hub.pOneFull = false;
 	hub.pTwoFull = false;
+	hub.pOneFill = 0;
+	hub.pTwoFill = 0;
+	hub.pOneLayer = clr+num.toString()+pclr1+"Fill"+num.toString();
+	hub.pTwoLayer = clr+num.toString()+pclr2+"Fill"+num.toString();
 	hub.pOneCountLayer = clr+num.toString()+pclr1+"SecCount"+num.toString();
 	hub.pTwoCountLayer = clr+num.toString()+pclr2+"SecCount"+num.toString();
 	var clrText = hub.colour;
@@ -297,6 +301,22 @@ game.initializeSecondaryHub = function(xcoord, ycoord, cap, clr, pclr1, pclr2, n
   		strokeWidth: 2,
   		x: hub.xpos, y: hub.ypos,
   		radius: hub.radius,
+  		click: game.clickSecHub(hub)
+	})
+	.drawArc({
+		layer: true, name: hub.pOneLayer,
+		opacity: 0.4,
+		fillStyle: hub.primOne,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.pOneFill,
+  		click: game.clickSecHub(hub)
+	})
+	.drawArc({
+		layer: true, name: hub.pTwoLayer,
+		opacity: 0.3,
+		fillStyle: hub.primTwo,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.pTwoFill,
   		click: game.clickSecHub(hub)
 	})
 	.drawArc({
@@ -481,11 +501,14 @@ game.initialize = function(){
 			if (!game.gameOver) {
 				game.paused = !game.paused;
 				var pTxt = "Pause";
+				var strStyle = 'silver';
 				if (game.paused) {
 					pTxt = "Play";
+					strStyle = 'black';
 				}
 				$('canvas').setLayer("pauseText", {
-					text: pTxt
+					text: pTxt,
+					strokeStyle: strStyle
 				});
 			}
 		}
@@ -541,6 +564,14 @@ game.drawSecondaryHubs = function(){
 		$('canvas').setLayer(hub.fillLayer, {
 			fillStyle: hub.colouring,
   			radius: hub.fillRadius
+		})
+		.setLayer(hub.pOneLayer, {
+			fillStyle: hub.primOne,
+  			radius: hub.pOneFill
+		})
+		.setLayer(hub.pTwoLayer, {
+			fillStyle: hub.primTwo,
+  			radius: hub.pTwoFill
 		})
 		.setLayer(hub.pOneCountLayer, {
 			text: hub.primOne+": "+hub.pOneCount.toString()
@@ -721,6 +752,8 @@ game.updateSecondaryHub = function(sHub){
 			sHub.connection = null;
 		}
 	}
+	sHub.pOneFill = (sHub.pOneCount*sHub.radius)/sHub.capacity;
+	sHub.pTwoFill = (sHub.pTwoCount*sHub.radius)/sHub.capacity;
 };
 
 game.updateTerminalHub = function(tHub){
@@ -769,7 +802,7 @@ game.update = function(){
 
 game.run = (function(){
 	var loops = 0, 
-	skipTicks = 1000 / 30, //FPS = 30
+	skipTicks = 1000 / 40, //FPS = 40
 	maxFrameSkip = 10,
 	nextGameTick = (new Date).getTime();
 	return function () {
