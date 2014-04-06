@@ -673,17 +673,27 @@ game.updatePrimaryHub = function(pHub){
 	if (pHub.units == 0) {
 		if (pHub.connected) {
 			var sHub = pHub.connection;
-			sHub.connected = false;
-			sHub.connection = null;
+			if (sHub.primOneConnection == pHub) {
+				sHub.primOneConnected = false;
+				sHub.primOneConnection = null;
+			} else {
+				sHub.primTwoConnected = false;
+				sHub.primTwoConnection = null;
+			}
 			pHub.connected = false;
-			pHub.connection = true;
+			pHub.connection = null;
 		}
 		if (pHub.connected2) {
 			var sHub = pHub.connection2;
-			sHub.connected = false;
-			sHub.connection = null;
+			if (sHub.primOneConnection == pHub) {
+				sHub.primOneConnected = false;
+				sHub.primOneConnection = null;
+			} else {
+				sHub.primTwoConnected = false;
+				sHub.primTwoConnection = null;
+			}
 			pHub.connected2 = false;
-			pHub.connection2 = true;
+			pHub.connection2 = null;
 		}
 	}
 	pHub.unitTimer -= 1;
