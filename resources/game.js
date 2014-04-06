@@ -1,3 +1,5 @@
+///// Game Object //////
+
 var game = { };
 
 ///// Game Options /////
@@ -29,7 +31,7 @@ game.colors = {
 	secondaryGreen: "rgb(0, 235, 0)",
 	secondaryGreenSelected: "rgb(0, 175, 0)",
 	secondaryOrange: "rgb(255, 128, 30)",
-	secondaryOrangeSelected: "rgb(204, 102, 0)",
+	secondaryOrangeSelected: "rgb(204, 102, 0)"
 };
 
 game.displayCounts = false;
