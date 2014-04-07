@@ -107,9 +107,8 @@ game.clickSecHub = function(hub){
 				var isPrimSelected = false;
 				$.each(game.primaryHubs, function(idx, pHub){
 					if (!pHub.connected && pHub.selected && !hub.isFull) {
-						if (((pHub.colour == hub.primOne) ||
-							((hub.primOne == game.colors.secondaryDefault) && (hub.units == 0)))
-							&& !hub.pOneFull) {
+						if (!hub.pOneFull && ((pHub.colour == hub.primOne) ||
+							((hub.primOne == game.colors.secondaryDefault)))) {
 							hub.primOneConnected = true;
 							hub.primOneConnection = pHub;
 							pHub.connected = true;
@@ -121,9 +120,8 @@ game.clickSecHub = function(hub){
 							isPrimSelected = true;
 							hub.colour = game.calcSecondaryColor(hub);
 							hub.colouring = game.calcSecondaryColor(hub);
-						} else if (((pHub.colour == hub.primTwo) ||
-							((hub.primTwo == game.colors.secondaryDefault) && (hub.units == 0)))
-							&& !hub.pTwoFull) {
+						} else if (!hub.pTwoFull && ((pHub.colour == hub.primTwo) ||
+							((hub.primTwo == game.colors.secondaryDefault)))) {
 							hub.primTwoConnected = true;
 							hub.primTwoConnection = pHub;
 							pHub.connected = true;
@@ -137,9 +135,8 @@ game.clickSecHub = function(hub){
 							hub.colouring = game.calcSecondaryColor(hub);
 						}
 					} else if (pHub.connected && !pHub.connected2 && pHub.selected && !hub.isFull) {
-						if (((pHub.colour == hub.primOne) ||
-							((hub.primOne == game.colors.secondaryDefault) && (hub.units == 0)))
-							&& !hub.pOneFull) {
+						if (!hub.pOneFull && ((pHub.colour == hub.primOne) ||
+							((hub.primOne == game.colors.secondaryDefault)))) {
 							hub.primOneConnected = true;
 							hub.primOneConnection = pHub;
 							pHub.connected2 = true;
@@ -151,9 +148,8 @@ game.clickSecHub = function(hub){
 							isPrimSelected = true;
 							hub.colour = game.calcSecondaryColor(hub);
 							hub.colouring = game.calcSecondaryColor(hub);
-						} else if (((pHub.colour == hub.primTwo) ||
-							((hub.primTwo == game.colors.secondaryDefault) && (hub.units == 0)))
-							&& !hub.pTwoFull) {
+						} else if (!hub.pTwoFull && ((pHub.colour == hub.primTwo) ||
+							((hub.primTwo == game.colors.secondaryDefault)))) {
 							hub.primTwoConnected = true;
 							hub.primTwoConnection = pHub;
 							pHub.connected2 = true;
@@ -820,12 +816,6 @@ game.updateSecondaryHub = function(sHub){
 			sHub.pTwoCount -= 1;
 			sHub.pOneFull = false;
 			sHub.pTwoFull = false;
-			if ((sHub.pTwoCount == 0) && !sHub.primTwoConnected) {
-				sHub.primTwo = this.colors.secondaryDefault;
-			}
-			if ((sHub.pOneCount == 0) && !sHub.primOneConnected) {
-				sHub.primOne = this.colors.secondaryDefault;
-			}
 			sHub.colour = this.calcSecondaryColor(sHub);
 		}
 	}
@@ -862,6 +852,12 @@ game.updateSecondaryHub = function(sHub){
 				sHub.units -= 1;
 				tHub.units += 1;
 				sHub.isFull = false;
+				if ((sHub.pTwoCount == 0) && !sHub.primTwoConnected && (sHub.units == 0)) {
+					sHub.primTwo = this.colors.secondaryDefault;
+				}
+				if ((sHub.pOneCount == 0) && !sHub.primOneConnected && (sHub.units == 0)) {
+					sHub.primOne = this.colors.secondaryDefault;
+				}
 				sHub.colour = this.calcSecondaryColor(sHub);
 			}
 		} else {
