@@ -432,7 +432,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 			layer: true, name: hub.redOutline,
   			strokeWidth: game.specs.hubOutline,
   			x: hub.xpos, y: hub.ypos,
-  			radius: hub.radius,
+  			radius: hub.radius+2,
   			click: game.clickSecHub(hub),
   			start: 0, end: 120,
   			strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryRed)
@@ -441,7 +441,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 			layer: true, name: hub.blueOutline,
   			strokeWidth: game.specs.hubOutline,
   			x: hub.xpos, y: hub.ypos,
-  			radius: hub.radius,
+  			radius: hub.radius+2,
   			click: game.clickSecHub(hub),
   			start: 120, end: 240,
   			strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryBlue)
@@ -450,7 +450,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 			layer: true, name: hub.yellowOutline,
   			strokeWidth: game.specs.hubOutline,
   			x: hub.xpos, y: hub.ypos,
-  			radius: hub.radius,
+  			radius: hub.radius+2,
   			click: game.clickSecHub(hub),
   			start: 240, end: 360,
   			strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryYellow)
