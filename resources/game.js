@@ -10,7 +10,8 @@ game.timers = {
 	primaryDrop2: 8,
 	secondaryConvert: 7,
 	secondaryDrop: 5,
-	terminalDrop: 3
+	terminalDrop: 30,
+	secondaryRotate: 2
 };
 
 game.capacities = {
@@ -361,6 +362,25 @@ game.secondarySelectColor = function(hub){
 	}
 };
 
+game.secondaryStrokeOutline = function(hub, clr) {
+	return function(layer) {
+		if ((hub.primOne == clr) || (hub.primTwo == clr)) {
+			if (clr == game.colors.primaryRed) {
+				return game.colors.primaryRedSelected;
+			} else if (clr == game.colors.primaryBlue) {
+				return game.colors.primaryBlueSelected;
+			} else {
+				return game.colors.primaryYellowSelected;
+			}
+		}
+		if ((hub.primOne != game.colors.secondaryDefault) && (hub.primTwo != game.colors.secondaryDefault)) {
+			return game.calcSecondaryColor(hub);
+		} else {
+			return clr;
+		}
+	}
+};
+
 game.initializeSecondaryHub = function(xcoord, ycoord, num){
 	var hub = this.initializeHub(xcoord, ycoord, this.capacities.secondary, this.specs.secondaryRadius, 
 		this.colors.secondaryDefault, this.colors.secondaryDefault, num, "sec");
@@ -384,13 +404,43 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 	hub.pTwoLayer = "PrimTwoFill"+num.toString();
 	hub.pOneCountLayer = "PrimOneCount"+num.toString();
 	hub.pTwoCountLayer = "PrimTwoCount"+num.toString();
+	hub.redOutline = "SecRedOutline"+num.toString();
+	hub.blueOutline = "SecBlueOutline"+num.toString();
+	hub.yellowOutline = "SecYellowOutline"+num.toString();
+	hub.rotateTimer = this.timers.secondaryRotate;
 	$('canvas').drawArc({
-		layer: true,
-		strokeStyle: 'black',
+		layer: true, name: hub.fillLayer,
+		fillStyle: hub.colouring,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.fillRadius,
+  		click: game.clickSecHub(hub)
+	})
+	.drawArc({
+		layer: true, name: hub.redOutline,
   		strokeWidth: game.specs.hubOutline,
   		x: hub.xpos, y: hub.ypos,
   		radius: hub.radius,
-  		click: game.clickSecHub(hub)
+  		click: game.clickSecHub(hub),
+  		start: 0, end: 120,
+  		strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryRed)
+	})
+	.drawArc({
+		layer: true, name: hub.blueOutline,
+  		strokeWidth: game.specs.hubOutline,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.radius,
+  		click: game.clickSecHub(hub),
+  		start: 120, end: 240,
+  		strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryBlue)
+	})
+	.drawArc({
+		layer: true, name: hub.yellowOutline,
+  		strokeWidth: game.specs.hubOutline,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.radius,
+  		click: game.clickSecHub(hub),
+  		start: 240, end: 360,
+  		strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryYellow)
 	})
 	.drawArc({
 		layer: true, name: hub.pOneLayer,
@@ -406,13 +456,6 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 		fillStyle: hub.primTwo,
   		x: hub.xpos, y: hub.ypos,
   		radius: hub.pTwoFill,
-  		click: game.clickSecHub(hub)
-	})
-	.drawArc({
-		layer: true, name: hub.fillLayer,
-		fillStyle: hub.colouring,
-  		x: hub.xpos, y: hub.ypos,
-  		radius: hub.fillRadius,
   		click: game.clickSecHub(hub)
 	})
 	.drawText({
@@ -620,13 +663,14 @@ game.initialize = function(){
 ///// Drawing /////
 
 game.drawHub = function(hub){
+	var layerCount = $('canvas').getLayers().length;
 	$('canvas').setLayer(hub.fillLayer, {
 		fillStyle: hub.colouring,
   		radius: hub.fillRadius
 	})
 	.setLayer(hub.countLayer, {
 		text: hub.units.toString()
-	});
+	}).moveLayer(hub.fillLayer, layerCount-1);
 	if (hub.connected) {
 		$('canvas').setLayer(hub.arrowLayer, {
 			visible: true,
@@ -666,9 +710,51 @@ game.drawPrimaryHubs = function(){
 	});
 };
 
+
+game.updateOutline = function(hub) {
+	hub.rotateTimer -= 1;
+	if (hub.rotateTimer < 0) {
+		hub.rotateTimer = this.timers.secondaryRotate;
+		var redStart = $('canvas').getLayer(hub.redOutline).start + 1;
+		var redEnd = $('canvas').getLayer(hub.redOutline).end + 1;
+		if (redStart > 360) {
+			redStart = 0;
+		}
+		if (redEnd > 360) {
+			redEnd = 0;
+		}
+		var blueStart = $('canvas').getLayer(hub.blueOutline).start + 1;
+		var blueEnd = $('canvas').getLayer(hub.blueOutline).end + 1;
+		if (blueStart > 360) {
+			blueStart = 0;
+		}
+		if (blueEnd > 360) {
+			blueEnd = 0;
+		}
+		var yellowStart = $('canvas').getLayer(hub.yellowOutline).start + 1;
+		var yellowEnd = $('canvas').getLayer(hub.yellowOutline).end + 1;
+		if (yellowStart > 360) {
+			yellowStart = 0;
+		}
+		if (yellowEnd > 360) {
+			yellowEnd = 0;
+		}
+		$('canvas').setLayer(hub.redOutline, {
+			start: redStart, end: redEnd
+		})
+		.setLayer(hub.blueOutline, {
+			start: blueStart, end: blueEnd
+		})
+		.setLayer(hub.yellowOutline, {
+			start: yellowStart, end: yellowEnd
+		}).moveLayer(hub.redOutline, 0).moveLayer(hub.blueOutline, 1).moveLayer(hub.yellowOutline, 2);
+	}
+};
+
 game.drawSecondaryHubs = function(){
 	$.each(this.secondaryHubs, function(idx, hub){
 		game.drawHub(hub);
+		game.updateOutline(hub);
 		$('canvas').setLayer(hub.pOneLayer, {
 			fillStyle: hub.primOne,
   			radius: hub.pOneFill
