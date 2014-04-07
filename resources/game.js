@@ -744,47 +744,6 @@ game.drawPrimaryHubs = function(){
 	});
 };
 
-
-game.updateOutline = function(hub) {
-	hub.rotateTimer -= 1;
-	if (hub.rotateTimer < 0) {
-		hub.rotateTimer = this.timers.secondaryRotate;
-		var redStart = $('canvas').getLayer(hub.redOutline).start + 1;
-		var redEnd = $('canvas').getLayer(hub.redOutline).end + 1;
-		if (redStart > 360) {
-			redStart = 0;
-		}
-		if (redEnd > 360) {
-			redEnd = 0;
-		}
-		var blueStart = $('canvas').getLayer(hub.blueOutline).start + 1;
-		var blueEnd = $('canvas').getLayer(hub.blueOutline).end + 1;
-		if (blueStart > 360) {
-			blueStart = 0;
-		}
-		if (blueEnd > 360) {
-			blueEnd = 0;
-		}
-		var yellowStart = $('canvas').getLayer(hub.yellowOutline).start + 1;
-		var yellowEnd = $('canvas').getLayer(hub.yellowOutline).end + 1;
-		if (yellowStart > 360) {
-			yellowStart = 0;
-		}
-		if (yellowEnd > 360) {
-			yellowEnd = 0;
-		}
-		$('canvas').setLayer(hub.redOutline, {
-			start: redStart, end: redEnd
-		})
-		.setLayer(hub.blueOutline, {
-			start: blueStart, end: blueEnd
-		})
-		.setLayer(hub.yellowOutline, {
-			start: yellowStart, end: yellowEnd
-		}).moveLayer(hub.redOutline, 0).moveLayer(hub.blueOutline, 1).moveLayer(hub.yellowOutline, 2);
-	}
-};
-
 game.drawSecondaryHubs = function(){
 	$.each(this.secondaryHubs, function(idx, hub){
 		game.drawHub(hub);
@@ -917,6 +876,48 @@ game.updatePrimaryHub = function(pHub){
 			else if ((sHub.primTwoConnection == pHub) && !sHub.pTwoFull) {
 				sHub.pTwoCount += 1;
 			}
+		}
+	}
+};
+
+game.updateOutline = function(hub) {
+	if (!this.gameOver && !this.paused) {
+		hub.rotateTimer -= 1;
+		if (hub.rotateTimer < 0) {
+			hub.rotateTimer = this.timers.secondaryRotate;
+			var redStart = $('canvas').getLayer(hub.redOutline).start + 1;
+			var redEnd = $('canvas').getLayer(hub.redOutline).end + 1;
+			if (redStart > 360) {
+				redStart = 0;
+			}
+			if (redEnd > 360) {
+				redEnd = 0;
+			}
+			var blueStart = $('canvas').getLayer(hub.blueOutline).start + 1;
+			var blueEnd = $('canvas').getLayer(hub.blueOutline).end + 1;
+			if (blueStart > 360) {
+				blueStart = 0;
+			}
+			if (blueEnd > 360) {
+				blueEnd = 0;
+			}
+			var yellowStart = $('canvas').getLayer(hub.yellowOutline).start + 1;
+			var yellowEnd = $('canvas').getLayer(hub.yellowOutline).end + 1;
+			if (yellowStart > 360) {
+				yellowStart = 0;
+			}
+			if (yellowEnd > 360) {
+				yellowEnd = 0;
+			}
+			$('canvas').setLayer(hub.redOutline, {
+				start: redStart, end: redEnd
+			})
+			.setLayer(hub.blueOutline, {
+				start: blueStart, end: blueEnd
+			})
+			.setLayer(hub.yellowOutline, {
+				start: yellowStart, end: yellowEnd
+			}).moveLayer(hub.redOutline, 0).moveLayer(hub.blueOutline, 1).moveLayer(hub.yellowOutline, 2);
 		}
 	}
 };
