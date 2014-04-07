@@ -10,7 +10,7 @@ game.timers = {
 	primaryDrop2: 8,
 	secondaryConvert: 7,
 	secondaryDrop: 5,
-	terminalDrop: 30
+	terminalDrop: 3
 };
 
 game.capacities = {
@@ -700,14 +700,16 @@ game.drawHubs = function(){
 
 game.drawGameOver = function(){
 	if (game.gameOver) {
+		var layerCount = $('canvas').getLayers().length;
 		$('canvas').setLayer("gameOverRec", {
 			visible: true,
 			x: 575, y: 325
-		});
-		$('canvas').setLayer("gameOverText", {
+		})
+		.setLayer("gameOverText", {
 			visible: true,
 			x: 575, y: 325
-		});
+		})
+		.moveLayer("gameOverRec", layerCount-2).moveLayer("gameOverText", layerCount-1);
 	}
 };	
 
