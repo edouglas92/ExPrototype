@@ -107,7 +107,9 @@ game.clickSecHub = function(hub){
 				var isPrimSelected = false;
 				$.each(game.primaryHubs, function(idx, pHub){
 					if (!pHub.connected && pHub.selected && !hub.isFull) {
-						if (((pHub.colour == hub.primOne) || (hub.primOne == game.colors.secondaryDefault)) && !hub.pOneFull) {
+						if (((pHub.colour == hub.primOne) ||
+							((hub.primOne == game.colors.secondaryDefault) && (hub.units == 0)))
+							&& !hub.pOneFull) {
 							hub.primOneConnected = true;
 							hub.primOneConnection = pHub;
 							pHub.connected = true;
@@ -119,7 +121,9 @@ game.clickSecHub = function(hub){
 							isPrimSelected = true;
 							hub.colour = game.calcSecondaryColor(hub);
 							hub.colouring = game.calcSecondaryColor(hub);
-						} else if (((pHub.colour == hub.primTwo) || (hub.primTwo == game.colors.secondaryDefault)) && !hub.pTwoFull) {
+						} else if (((pHub.colour == hub.primTwo) ||
+							((hub.primTwo == game.colors.secondaryDefault) && (hub.units == 0)))
+							&& !hub.pTwoFull) {
 							hub.primTwoConnected = true;
 							hub.primTwoConnection = pHub;
 							pHub.connected = true;
@@ -133,7 +137,9 @@ game.clickSecHub = function(hub){
 							hub.colouring = game.calcSecondaryColor(hub);
 						}
 					} else if (pHub.connected && !pHub.connected2 && pHub.selected && !hub.isFull) {
-						if (((pHub.colour == hub.primOne) || (hub.primOne == game.colors.secondaryDefault)) && !hub.pOneFull) {
+						if (((pHub.colour == hub.primOne) ||
+							((hub.primOne == game.colors.secondaryDefault) && (hub.units == 0)))
+							&& !hub.pOneFull) {
 							hub.primOneConnected = true;
 							hub.primOneConnection = pHub;
 							pHub.connected2 = true;
@@ -145,7 +151,9 @@ game.clickSecHub = function(hub){
 							isPrimSelected = true;
 							hub.colour = game.calcSecondaryColor(hub);
 							hub.colouring = game.calcSecondaryColor(hub);
-						} else if (((pHub.colour == hub.primTwo) || (hub.primOne == game.colors.secondaryDefault)) && !hub.pTwoFull) {
+						} else if (((pHub.colour == hub.primTwo) ||
+							((hub.primTwo == game.colors.secondaryDefault) && (hub.units == 0)))
+							&& !hub.pTwoFull) {
 							hub.primTwoConnected = true;
 							hub.primTwoConnection = pHub;
 							pHub.connected2 = true;
