@@ -189,7 +189,7 @@ game.clickTermHub = function(hub){
 		if (!game.gameOver && !game.paused) {
 			$.each(game.secondaryHubs, function(idx, sHub){
 				if (!sHub.connected && sHub.selected && sHub.units > 0) {
-					if ((sHub.colour == hub.colour) && !hub.isFull) {
+					if ((sHub.colour == hub.colour) && !hub.isFull &&!hub.secConnected) {
 						hub.secConnected = true;
 						hub.secConnection = sHub;
 						sHub.connected = true;
@@ -866,9 +866,9 @@ game.updateSecondaryHub = function(sHub){
 			}
 		} else {
 			sHub.connected = false;
-			tHub.connected = false;
+			tHub.secConnected = false;
 			tHub.secConnection = null;
-			sHub.secConnection = null;
+			sHub.connection = null;
 		}
 	}
 	sHub.pOneFill = (sHub.pOneCount*sHub.radius)/sHub.capacity;
