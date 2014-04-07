@@ -51,6 +51,8 @@ game.displayCounts = false;
 
 game.clickableArrows = false;
 
+game.outlineSecondary = true;
+
 game.FPS = 30;
 
 ///// Click Functionality /////
@@ -242,7 +244,8 @@ game.initializeHub = function(xcoord, ycoord, cap, rad, clr, sClr, num, name){
 		isPrimary: true,
 		fillLayer: name+"Fill"+num.toString()+clr,
 		countLayer: name+"Count"+num.toString()+clr,
-		arrowLayer: name+"Arrow"+num.toString()+clr
+		arrowLayer: name+"Arrow"+num.toString()+clr,
+		clickLayer: name+"Click"+num.toString()+clr
 	};
 	$('canvas').drawLine({
 		layer: true, name: hub.arrowLayer,
@@ -281,19 +284,28 @@ game.initializePrimaryHub = function(xcoord, ycoord, clr, sClr, num){
   		click: game.clickArrow2(hub)
 	})
 	.drawArc({
+		layer: true, name: hub.clickLayer,
+		strokeStyle: hub.colour,
+  		strokeWidth: game.specs.hubOutline,
+  		fillStyle: 'black',
+  		opacity: 0.0,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.radius,
+  		visible: true,
+  		click: game.clickPrimHub(hub)
+	})
+	.drawArc({
 		layer: true,
 		strokeStyle: hub.colour,
   		strokeWidth: game.specs.hubOutline,
   		x: hub.xpos, y: hub.ypos,
-  		radius: hub.radius,
-  		click: game.clickPrimHub(hub)
+  		radius: hub.radius
 	})
 	.drawArc({
 		layer: true, name: hub.fillLayer,
 		fillStyle: hub.colouring,
   		x: hub.xpos, y: hub.ypos,
-  		radius: hub.fillRadius,
-  		click: game.clickPrimHub(hub)
+  		radius: hub.fillRadius
 	})
 	.drawText({
 		layer: true,
@@ -305,8 +317,7 @@ game.initializePrimaryHub = function(xcoord, ycoord, clr, sClr, num){
 		fontSize: 34,
 		fontFamily: 'Arial',
 		visible: game.displayCounts,
-		text: hub.units.toString(),
-		click: game.clickPrimHub(hub)
+		text: hub.units.toString()
 	});
 	return hub
 };
@@ -408,55 +419,73 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 	hub.blueOutline = "SecBlueOutline"+num.toString();
 	hub.yellowOutline = "SecYellowOutline"+num.toString();
 	hub.rotateTimer = this.timers.secondaryRotate;
+	if (!this.outlineSecondary) {
+		$('canvas').drawArc({
+			layer: true,
+			strokeStyle: 'black',
+  			strokeWidth: game.specs.hubOutline,
+  			x: hub.xpos, y: hub.ypos,
+  			radius: hub.radius
+		});
+	} else {
+		$('canvas').drawArc({
+			layer: true, name: hub.redOutline,
+  			strokeWidth: game.specs.hubOutline,
+  			x: hub.xpos, y: hub.ypos,
+  			radius: hub.radius,
+  			click: game.clickSecHub(hub),
+  			start: 0, end: 120,
+  			strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryRed)
+		})
+		.drawArc({
+			layer: true, name: hub.blueOutline,
+  			strokeWidth: game.specs.hubOutline,
+  			x: hub.xpos, y: hub.ypos,
+  			radius: hub.radius,
+  			click: game.clickSecHub(hub),
+  			start: 120, end: 240,
+  			strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryBlue)
+		})
+		.drawArc({
+			layer: true, name: hub.yellowOutline,
+  			strokeWidth: game.specs.hubOutline,
+  			x: hub.xpos, y: hub.ypos,
+  			radius: hub.radius,
+  			click: game.clickSecHub(hub),
+  			start: 240, end: 360,
+  			strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryYellow)
+		});
+	}
 	$('canvas').drawArc({
 		layer: true, name: hub.fillLayer,
 		fillStyle: hub.colouring,
   		x: hub.xpos, y: hub.ypos,
-  		radius: hub.fillRadius,
+  		radius: hub.fillRadius
+	})
+	.drawArc({
+		layer: true, name: hub.clickLayer,
+		strokeStyle: hub.colour,
+  		strokeWidth: game.specs.hubOutline,
+  		x: hub.xpos, y: hub.ypos,
+  		radius: hub.radius,
+  		visible: true,
+  		fillStyle: 'black',
+  		opacity: 0.0,
   		click: game.clickSecHub(hub)
-	})
-	.drawArc({
-		layer: true, name: hub.redOutline,
-  		strokeWidth: game.specs.hubOutline,
-  		x: hub.xpos, y: hub.ypos,
-  		radius: hub.radius,
-  		click: game.clickSecHub(hub),
-  		start: 0, end: 120,
-  		strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryRed)
-	})
-	.drawArc({
-		layer: true, name: hub.blueOutline,
-  		strokeWidth: game.specs.hubOutline,
-  		x: hub.xpos, y: hub.ypos,
-  		radius: hub.radius,
-  		click: game.clickSecHub(hub),
-  		start: 120, end: 240,
-  		strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryBlue)
-	})
-	.drawArc({
-		layer: true, name: hub.yellowOutline,
-  		strokeWidth: game.specs.hubOutline,
-  		x: hub.xpos, y: hub.ypos,
-  		radius: hub.radius,
-  		click: game.clickSecHub(hub),
-  		start: 240, end: 360,
-  		strokeStyle: game.secondaryStrokeOutline(hub, game.colors.primaryYellow)
 	})
 	.drawArc({
 		layer: true, name: hub.pOneLayer,
 		opacity: game.specs.primOneOpac,
 		fillStyle: hub.primOne,
   		x: hub.xpos, y: hub.ypos,
-  		radius: hub.pOneFill,
-  		click: game.clickSecHub(hub)
+  		radius: hub.pOneFill
 	})
 	.drawArc({
 		layer: true, name: hub.pTwoLayer,
 		opacity: game.specs.primTwoOpac,
 		fillStyle: hub.primTwo,
   		x: hub.xpos, y: hub.ypos,
-  		radius: hub.pTwoFill,
-  		click: game.clickSecHub(hub)
+  		radius: hub.pTwoFill
 	})
 	.drawText({
 		layer: true,
@@ -468,8 +497,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 		fontSize: 18,
 		fontFamily: 'Arial',
 		visible: game.displayCounts,
-		text: hub.units.toString(),
-		click: game.clickSecHub(hub)
+		text: hub.units.toString()
 	})
 	.drawText({
 		layer: true,
@@ -481,8 +509,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 		fontSize: 18,
 		fontFamily: 'Arial',
 		visible: game.displayCounts,
-		text: hub.pOneCount.toString(),
-		click: game.clickSecHub(hub)
+		text: hub.pOneCount.toString()
 	})
 	.drawText({
 		layer: true,
@@ -494,8 +521,7 @@ game.initializeSecondaryHub = function(xcoord, ycoord, num){
 		fontSize: 18,
 		fontFamily: 'Arial',
 		visible: game.displayCounts,
-		text: hub.pTwoCount.toString(),
-		click: game.clickSecHub(hub)
+		text: hub.pTwoCount.toString()
 	});
 	return hub
 };
@@ -525,15 +551,24 @@ game.initializeTerminalHub = function(xcoord, ycoord, clr, sClr, num){
 		strokeStyle: hub.colour,
   		strokeWidth: game.specs.hubOutline,
   		x: hub.xpos, y: hub.ypos,
+  		radius: hub.radius
+	})
+	.drawArc({
+		layer: true, name: hub.clickLayer,
+		strokeStyle: hub.colour,
+  		strokeWidth: game.specs.hubOutline,
+  		x: hub.xpos, y: hub.ypos,
   		radius: hub.radius,
+  		visible: true,
+  		fillStyle: 'black',
+  		opacity: 0.0,
   		click: game.clickTermHub(hub)
 	})
 	.drawArc({
 		layer: true, name: hub.fillLayer,
 		fillStyle: hub.colouring,
   		x: hub.xpos, y: hub.ypos,
-  		radius: hub.fillRadius,
-  		click: game.clickTermHub(hub)
+  		radius: hub.fillRadius
 	})
 	.drawText({
 		layer: true,
@@ -545,8 +580,7 @@ game.initializeTerminalHub = function(xcoord, ycoord, clr, sClr, num){
 		fontSize: 34,
 		fontFamily: 'Arial',
 		visible: game.displayCounts,
-		text: hub.units.toString(),
-		click: game.clickTermHub(hub)
+		text: hub.units.toString()
 	});
 	return hub;
 };
@@ -670,7 +704,7 @@ game.drawHub = function(hub){
 	})
 	.setLayer(hub.countLayer, {
 		text: hub.units.toString()
-	}).moveLayer(hub.fillLayer, layerCount-1);
+	}).moveLayer(hub.fillLayer, layerCount-2).moveLayer(hub.clickLayer, layerCount-1);
 	if (hub.connected) {
 		$('canvas').setLayer(hub.arrowLayer, {
 			visible: true,
@@ -754,7 +788,9 @@ game.updateOutline = function(hub) {
 game.drawSecondaryHubs = function(){
 	$.each(this.secondaryHubs, function(idx, hub){
 		game.drawHub(hub);
-		game.updateOutline(hub);
+		if (game.outlineSecondary) {
+			game.updateOutline(hub);
+		} 
 		$('canvas').setLayer(hub.pOneLayer, {
 			fillStyle: hub.primOne,
   			radius: hub.pOneFill
