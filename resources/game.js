@@ -4,6 +4,8 @@ var game = { };
 
 ///// Game Options /////
 
+game.FPS = 30;
+
 game.timers = {
 	primaryUnit: 10,
 	primaryDrop1: 6,
@@ -12,8 +14,8 @@ game.timers = {
 	secondaryDrop: 5,
 	terminalDrop: 20,
 	secondaryRotate: 2,
-	upgradeTimer: 500,
-	terminalTimer: 600
+	upgradeTimer: game.FPS*20,
+	terminalTimer: game.FPS*19
 };
 
 game.capacities = {
@@ -23,16 +25,16 @@ game.capacities = {
 };
 
 game.specs = {
-	primaryRadius: 45,
-	secondaryRadius: 45,
-	terminalRadius: 45,
+	primaryRadius: 25,
+	secondaryRadius: 25,
+	terminalRadius: 25,
 	hubOutline: 2,
 	connectWidth: 8,
 	minConnectWidth: 2,
 	primOneOpac: 0.35,
 	primTwoOpac: 0.3,
 	minSecondaryFill: 3,
-	outlineBuffer: 1,
+	outlineBuffer: 2,
 	warnCount: game.capacities.terminal*0.20,
 	maxWarnOpac: 0.5,
 	warnOpacStep: 0.0175
@@ -62,13 +64,11 @@ game.clickableArrows = false;
 game.outlineSecondary = true;
 game.rotateOutline = true;
 
-game.FPS = 30;
-
 ///// Click Functionality /////
 
 game.clickPrimHub = function(hub){
 	return function(layer) {
-		if (!game.gameOver && !game.paused) {
+		if (!game.gameOver && !game.paused && !game.isChoosing && !game.spawning) {
 			var hubSelected = hub.selected;
 			$.each(game.primaryHubs, function(idx, pHub){
 				pHub.selected = false;
@@ -108,7 +108,7 @@ game.clickPrimHub = function(hub){
 
 game.clickSecHub = function(hub){
 	return function(layer) {
-		if (!game.gameOver && !game.paused) {
+		if (!game.gameOver && !game.paused && !game.isChoosing && !game.spawning) {
 			var hubSelected = hub.selected;
 			$.each(game.secondaryHubs, function(idx, sHub){
 				sHub.selected = false;
@@ -194,7 +194,7 @@ game.clickSecHub = function(hub){
 
 game.clickTermHub = function(hub){
 	return function(layer) {
-		if (!game.gameOver && !game.paused) {
+		if (!game.gameOver && !game.paused && !game.isChoosing && !game.spawning) {
 			$.each(game.secondaryHubs, function(idx, sHub){
 				if (!sHub.connected && sHub.selected && sHub.units > 0) {
 					if ((sHub.colour == hub.colour) && !hub.isFull &&!hub.secConnected) {
@@ -235,29 +235,52 @@ game.clickArrow2 = function(hub){
 
 game.clickRedUpgrade = function(){
 	return function(layer){
-		game.addRedHub(600, 100);
+		game.chosenUpgrade = game.colors.primaryRed;
 		game.isChoosing = false;
+		game.spawning = true;
 	}
 };
 
 game.clickBlueUpgrade = function(){
 	return function(layer){
-		game.addBlueHub(300, 100);
+		game.chosenUpgrade = game.colors.primaryBlue;
 		game.isChoosing = false;
+		game.spawning = true;
 	}
 };
 
 game.clickYellowUpgrade = function(){
 	return function(layer){
-		game.addYellowHub(500, 100);
+		game.chosenUpgrade = game.colors.primaryYellow;
 		game.isChoosing = false;
+		game.spawning = true;
 	}
 };
 
 game.clickMixUpgrade = function(){
 	return function(layer){
-		game.addSecondaryHub(400, 300);
+		game.chosenUpgrade = game.colors.secondaryDefault;
 		game.isChoosing = false;
+		game.spawning = true;
+	}
+};
+
+game.clickSpawn = function(clr){
+	return function(layer){
+		if (game.chosenUpgrade == game.colors.primaryRed) {
+			game.addRedHub(layer.x, layer.y);
+		} else if (game.chosenUpgrade == game.colors.primaryYellow) {
+			game.addYellowHub(layer.x, layer.y);
+		} else if (game.chosenUpgrade == game.colors.primaryBlue) {
+			game.addBlueHub(layer.x, layer.y);
+		} else {
+			game.addSecondaryHub(layer.x, layer.y);
+		}
+		$('canvas').removeLayer(layer);
+		game.spawning = false;
+		var xIdx = game.xSpawns.indexOf(layer.x);
+		var yIdx = game.ySpawns.indexOf(layer.y);
+		game.isSpawned[xIdx.toString()+","+yIdx.toString()] = true;
 	}
 };
 
@@ -659,6 +682,82 @@ game.addOrangeTerm = function(xcoord, ycoord){
 
 ///// Game Initialization /////
 
+game.initSpawnLocs = function (){
+	this.xSpawns = [];
+	this.ySpawns = [];
+	this.isSpawned = {};
+	for (var i=0; i<17; i++) {
+		var xLoc = ((game.specs.primaryRadius + 10) + (i*2*game.specs.primaryRadius*1.35));
+		if (i%2 == 0) {
+			xLoc = ((game.specs.primaryRadius + 10) + (i*2*game.specs.primaryRadius*1.35));
+		}
+		this.xSpawns.push(xLoc);
+	}
+	for (var i=0; i<9; i++) {
+		var yLoc = ((game.specs.primaryRadius + 35) + (i*2*game.specs.primaryRadius*1.37));
+		this.ySpawns.push(yLoc);
+	}
+	for (var x=0; x<17; x++){
+		for (var y=0; y<9; y++){
+			this.isSpawned[x.toString()+","+y.toString()] = false;
+		}
+	}
+	for (var xS in this.xSpawns) {
+		for (var yS in this.ySpawns) {
+			$('canvas').drawArc({
+				layer: true, name: xS.toString()+","+yS.toString(),
+				groups: ['spawns'],
+				visible: false,
+  				x: this.xSpawns[xS], y: this.ySpawns[yS],
+  				radius: game.specs.primaryRadius,
+  				strokeStyle: 'white',
+  				strokeWidth: 2,
+  				click: this.clickSpawn()
+			});
+		}
+	}
+};
+
+game.initializeHubs = function(){
+	var xPrim = Math.floor(Math.random()*this.xSpawns.length),
+	yPrim = Math.floor(Math.random()*this.ySpawns.length),
+	xSec = Math.floor(Math.random()*this.xSpawns.length),
+	ySec = Math.floor(Math.random()*this.ySpawns.length),
+	xTerm = Math.floor(Math.random()*this.xSpawns.length),
+	yTerm = Math.floor(Math.random()*this.ySpawns.length);
+	while ((xPrim == xSec) && (yPrim == ySec)) {
+		xSec = Math.floor(Math.random()*this.xSpawns.length);
+		ySec = Math.floor(Math.random()*this.ySpawns.length);
+	}
+	while ((xTerm == xSec) && (yTerm == ySec)) {
+		xTerm = Math.floor(Math.random()*this.xSpawns.length);
+		yTerm = Math.floor(Math.random()*this.ySpawns.length);
+	}
+	var pIdx = Math.floor(Math.random()*3);
+	if (pIdx == 0) {
+		this.addRedHub(this.xSpawns[xPrim], this.ySpawns[yPrim]);
+	} else if (pIdx == 1) {
+		this.addBlueHub(this.xSpawns[xPrim], this.ySpawns[yPrim]);
+	} else {
+		this.addYellowHub(this.xSpawns[xPrim], this.ySpawns[yPrim]);
+	}
+	this.isSpawned[xPrim.toString()+","+yPrim.toString()] = true;
+	$('canvas').removeLayer(xPrim.toString()+","+yPrim.toString());
+	this.addSecondaryHub(this.xSpawns[xSec], this.ySpawns[ySec]);
+	this.isSpawned[xSec.toString()+","+ySec.toString()] = true;
+	$('canvas').removeLayer(xSec.toString()+","+ySec.toString());
+	var tIdx = Math.floor(Math.random()*3);
+	if (tIdx == 0) {
+		this.addPurpleTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
+	} else if (tIdx == 1) {
+		this.addGreenTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
+	} else {
+		this.addOrangeTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
+	}
+	this.isSpawned[xTerm.toString()+","+yTerm.toString()] = true;
+	$('canvas').removeLayer(xTerm.toString()+","+yTerm.toString());
+};
+
 game.initialize = function(){
 	$('canvas').removeLayers().clearCanvas();
 	this.drawPending = false;
@@ -679,11 +778,12 @@ game.initialize = function(){
 	this.orangeTerms = 0;
 	this.secondaryHubCount = 0;
 	this.isChoosing = false;
-	this.upgradeTimer = game.timers.upgradeTimer;
+	this.upgradeTimer = game.FPS*5;
 	this.terminalTimer = game.timers.terminalTimer;
-	this.addRedHub(100, 100);
-	this.addSecondaryHub(200, 300);
-	this.addPurpleTerm(150, 520);
+	this.spawning = false;
+	this.chosenUpgrade = this.colors.secondaryDefault;
+	this.initSpawnLocs();
+	this.initializeHubs();
 	$('canvas').drawRect({
 		layer: true,
 		visible: false,
@@ -806,6 +906,7 @@ game.initialize = function(){
 	})
 	.drawSlice({
 		layer: true, groups: ['upgrades'],
+		name: "redUpgradeSlice",
   		x: 720, y: 325,
   		radius: 20,
   		visible: false,
@@ -814,6 +915,7 @@ game.initialize = function(){
 	})
 	.drawSlice({
 		layer: true, groups: ['upgrades'],
+		name: "blueUpgradeSlice",
   		x: 720, y: 325,
   		radius: 20,
   		visible: false,
@@ -822,6 +924,7 @@ game.initialize = function(){
 	})
 	.drawSlice({
 		layer: true, groups: ['upgrades'],
+		name: "yellowUpgradeSlice",
   		x: 720, y: 325,
   		radius: 20,
   		visible: false,
@@ -948,9 +1051,11 @@ game.drawTerminals = function(){
 };
 
 game.drawHubs = function(){
-	this.drawPrimaryHubs();
-	this.drawSecondaryHubs();
-	this.drawTerminals();
+	if (!this.gameOver && !this.paused && !this.isChoosing) {
+		this.drawPrimaryHubs();
+		this.drawSecondaryHubs();
+		this.drawTerminals();
+	}
 };
 
 game.drawGameOver = function(){
@@ -975,6 +1080,11 @@ game.drawChoosing = function(){
 			$('canvas').setLayerGroup("upgrades", {
 				visible: true
 			})
+			.moveLayer("upgradeRec", layerCount-9)
+			.moveLayer("upgradeText", layerCount-8)
+			.moveLayer("blueUpgradeSlice", layerCount-7)
+			.moveLayer("yellowUpgradeSlice", layerCount-6)
+			.moveLayer("redUpgradeSlice", layerCount-5)
 			.moveLayer("redUpgrade", layerCount-4)
 			.moveLayer("blueUpgrade", layerCount-3)
 			.moveLayer("yellowUpgrade", layerCount-2)
@@ -987,10 +1097,30 @@ game.drawChoosing = function(){
 	}
 };
 
+game.drawSpawnLocs = function(){
+	if (!game.gameOver && !game.paused) {
+		if (game.spawning) {
+			$('canvas').setLayerGroup("spawns", {
+				visible: true
+			});
+			var spawnLocs = $('canvas').getLayerGroup("spawns");
+			var layerCount = $('canvas').getLayers().length;
+			for (var layer in spawnLocs) {
+				$('canvas').moveLayer(spawnLocs[layer], layerCount-1);
+			}
+		} else {
+			$('canvas').setLayerGroup("spawns", {
+				visible: false
+			});
+		}
+	}
+};
+
 game.draw = function(){
 	game.drawPending = false;
 	game.drawHubs();
 	game.drawChoosing();
+	game.drawSpawnLocs();
 	game.drawGameOver();
 	$('canvas').setLayer("timerText", {
 		text: "Time: "+Math.floor(game.totalTime/game.FPS).toString()
@@ -1075,7 +1205,7 @@ game.updatePrimaryHub = function(pHub){
 };
 
 game.updateOutline = function(hub) {
-	if (!this.gameOver && !this.paused && this.rotateOutline &&!this.isChoosing) {
+	if (!this.gameOver && !this.paused && this.rotateOutline &&!this.isChoosing && !this.spawning) {
 		hub.rotateTimer -= 1;
 		if (hub.rotateTimer < 0) {
 			hub.rotateTimer = this.timers.secondaryRotate;
@@ -1208,7 +1338,7 @@ game.updateTerminalHub = function(tHub){
 		tHub.secConnection.connected = false;
 		tHub.secConnection = null;
 	}
-	if (tHub.units < this.specs.warnCount && !game.gameOver) {
+	if (tHub.units < this.specs.warnCount) {
 		if (tHub.warnUp) {
 			tHub.warnOpacity += this.specs.warnOpacStep;
 			if (tHub.warnOpacity > this.specs.maxWarnOpac) {
@@ -1220,7 +1350,7 @@ game.updateTerminalHub = function(tHub){
 				tHub.warnUp = true;
 			}
 		}
-	} else if (!game.gameOver){
+	} else {
 		tHub.warnUp = true;
 		tHub.warnOpacity = 0.0;
 	}
@@ -1254,16 +1384,29 @@ game.updateTerminalTimer = function(){
 	this.terminalTimer -= 1;
 	if (this.terminalTimer < 0) {
 		this.terminalTimer = game.timers.terminalTimer;
-		var xSpawn = 400,
-		ySpawn = 520;
-		termSpawns = [this.addPurpleTerm(xSpawn, ySpawn), this.addOrangeTerm(xSpawn, ySpawn), this.addGreenTerm(xSpawn, ySpawn)],
+		var xSpawn = Math.floor(Math.random()*(this.xSpawns.length)),
+		ySpawn = Math.floor(Math.random()*(this.ySpawns.length));
+		while (this.isSpawned[xSpawn.toString()+","+ySpawn.toString()]) {
+			xSpawn = Math.floor(Math.random()*(this.xSpawns.length));
+			ySpawn = Math.floor(Math.random()*(this.ySpawns.length));
+		}
+		this.isSpawned[xSpawn.toString()+","+ySpawn.toString()] = true;
+		$('canvas').removeLayer(xSpawn.toString()+","+ySpawn.toString());
+		xSpawn = this.xSpawns[xSpawn];
+		ySpawn = this.ySpawns[ySpawn];
 		tIdx = Math.floor(Math.random()*3);
-		termSpawns[tIdx];
+		if (tIdx == 0) {
+			this.addPurpleTerm(xSpawn, ySpawn);
+		} else if (tIdx == 1) {
+			this.addOrangeTerm(xSpawn, ySpawn);
+		} else {
+			this.addGreenTerm(xSpawn, ySpawn);
+		}
 	}
 };
 
 game.update = function(){
-	if (!this.gameOver && !this.paused && !this.isChoosing) {
+	if (!this.gameOver && !this.paused && !this.isChoosing && !this.spawning) {
 		this.totalTime += 1;
 		this.updateHubs();
 		this.updateUpgrade();
