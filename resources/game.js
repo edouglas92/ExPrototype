@@ -1085,7 +1085,7 @@ game.drawTerminals = function(){
 };
 
 game.drawHubs = function(){
-	if (!this.gameOver && !this.paused) {
+	if (!this.gameOver && !this.paused && !this.isChoosing && !this.spawning) {
 		this.drawPrimaryHubs();
 		this.drawSecondaryHubs();
 		this.drawTerminals();
