@@ -37,7 +37,9 @@ game.specs = {
 	outlineBuffer: 2,
 	warnCount: game.capacities.terminal*0.20,
 	maxWarnOpac: 0.5,
-	warnOpacStep: 0.0175
+	warnOpacStep: 0.0175,
+	arrowXDis: 65,
+	arrowYDis: 25
 };
 
 game.colors = {
@@ -817,7 +819,7 @@ game.initialize = function(){
 		fontFamily: 'Arial',
 		text: "Pause",
 		click: function(layer){
-			if (!game.gameOver) {
+			if (!game.gameOver && !game.isChoosing && !game.spawning) {
 				game.paused = !game.paused;
 				var pTxt = "Pause";
 				var filStyle = game.colors.primaryRed;
@@ -959,6 +961,16 @@ game.drawHub = function(hub){
 				(hub.units/hub.capacity)*game.specs.connectWidth),
 			strokeStyle: hub.colour
 		});
+	} else if (hub.selected && !hub.connected) {
+		$('canvas').mousemove(function(event){
+			if (!game.isChoosing && !game.spawning && !game.gameOver && !game.paused) {
+				$('canvas').setLayer(hub.arrowLayer, {
+					visible: true,
+					x2: event.pageX-game.specs.arrowXDis, y2: event.pageY-game.specs.arrowYDis,
+					strokeStyle: hub.colour
+				}).moveLayer(hub.arrowLayer, layerCount -3);
+			}
+		});
 	} else {
 		$('canvas').setLayer(hub.arrowLayer, {
 			visible: false,
@@ -1024,7 +1036,11 @@ game.drawSecondaryHubs = function(){
 		.setLayer(hub.fillLayer, {
 			fillStyle: hub.colouring
 		});
-
+		if (hub.units == 0) {
+			$('canvas').setLayer(hub.arrowLayer, {
+				visible: false
+			});
+		}
 	});
 };
 
@@ -1051,7 +1067,7 @@ game.drawTerminals = function(){
 };
 
 game.drawHubs = function(){
-	if (!this.gameOver && !this.paused && !this.isChoosing) {
+	if (!this.gameOver && !this.paused) {
 		this.drawPrimaryHubs();
 		this.drawSecondaryHubs();
 		this.drawTerminals();
