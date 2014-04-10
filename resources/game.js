@@ -15,7 +15,7 @@ game.timers = {
 	terminalDrop: 20,
 	secondaryRotate: 2,
 	upgradeTimer: game.FPS*20,
-	terminalTimer: game.FPS*19
+	terminalTimer: game.FPS*19.8
 };
 
 game.capacities = {
@@ -273,6 +273,11 @@ game.clickMixUpgrade = function(){
 
 game.clickSpawn = function(clr){
 	return function(layer){
+		game.spawning = false;
+		$('canvas').removeLayer(layer);
+		var xIdx = game.xSpawns.indexOf(layer.x);
+		var yIdx = game.ySpawns.indexOf(layer.y);
+		game.isSpawned[xIdx.toString()+","+yIdx.toString()] = true;
 		if (game.chosenUpgrade == game.colors.primaryRed) {
 			game.addRedHub(layer.x, layer.y);
 		} else if (game.chosenUpgrade == game.colors.primaryYellow) {
@@ -282,11 +287,7 @@ game.clickSpawn = function(clr){
 		} else {
 			game.addSecondaryHub(layer.x, layer.y);
 		}
-		$('canvas').removeLayer(layer);
-		game.spawning = false;
-		var xIdx = game.xSpawns.indexOf(layer.x);
-		var yIdx = game.ySpawns.indexOf(layer.y);
-		game.isSpawned[xIdx.toString()+","+yIdx.toString()] = true;
+		game.moveMouse();
 	}
 };
 
@@ -966,18 +967,7 @@ game.drawHub = function(hub){
 			strokeStyle: hub.colour,
 			arrowRadius: 0
 		});
-	} else if (hub.selected && !hub.connected) {
-		$('canvas').mousemove(function(event){
-			if (!game.isChoosing && !game.spawning && !game.gameOver && !game.paused) {
-				$('canvas').setLayer(hub.arrowLayer, {
-					visible: true,
-					x2: event.pageX-game.specs.arrowXDis, y2: event.pageY-game.specs.arrowYDis,
-					strokeStyle: hub.colour,
-					arrowRadius: 10
-				}).moveLayer(hub.arrowLayer, layerCount -3);
-			}
-		});
-	} else {
+	} else if (!hub.selected) {
 		$('canvas').setLayer(hub.arrowLayer, {
 			visible: false,
 			x2: hub.xpos, y2: hub.ypos,
@@ -998,18 +988,7 @@ game.drawPrimaryHubs = function(){
 					(hub.units/hub.capacity)*game.specs.connectWidth),
 				arrowRadius: 0
 			});
-		} else if (hub.selected && hub.connected && !hub.connected2) {
-			$('canvas').mousemove(function(event){
-				if (!game.isChoosing && !game.spawning && !game.gameOver && !game.paused) {
-					$('canvas').setLayer(hub.arrowLayer+"2", {
-						visible: true,
-						x2: event.pageX-game.specs.arrowXDis, y2: event.pageY-game.specs.arrowYDis,
-						strokeStyle: hub.colour,
-						arrowRadius: 10
-					}).moveLayer(hub.arrowLayer+"2", layerCount -3);
-				}
-			});
-		} else {
+		} else if (!hub.selected) {
 			$('canvas').setLayer(hub.arrowLayer+"2", {
 				visible: false,
 				x2: hub.xpos, y2: hub.ypos,
@@ -1054,11 +1033,6 @@ game.drawSecondaryHubs = function(){
 		.setLayer(hub.fillLayer, {
 			fillStyle: hub.colouring
 		});
-		if (hub.units == 0) {
-			$('canvas').setLayer(hub.arrowLayer, {
-				visible: false
-			});
-		}
 	});
 };
 
@@ -1391,10 +1365,10 @@ game.updateTerminalHub = function(tHub){
 };
 
 game.updateHubs = function(){
-	var pHubs = this.primaryHubs;
-	var sHubs = this.secondaryHubs;
-	var tHubs = this.terminalHubs;
-	var hubs = pHubs.concat(sHubs).concat(tHubs);
+	var pHubs = this.primaryHubs,
+	sHubs = this.secondaryHubs,
+	tHubs = this.terminalHubs,
+	hubs = pHubs.concat(sHubs).concat(tHubs);
 	$.each(hubs, function(idx, hub){
 		if (hub.isPrimary) {
 			game.updatePrimaryHub(hub);
@@ -1469,20 +1443,63 @@ game.run = (function(){
 
 ///// User Input /////
 
+game.moveMouse = function(){
+	var pHubs = this.primaryHubs,
+	sHubs = this.secondaryHubs,
+	tHubs = this.terminalHubs,
+	hubs = pHubs.concat(sHubs).concat(tHubs),
+	layerCount = $('canvas').getLayers().length;
+	$('canvas').mousemove(function(event){
+		$.each(hubs, function(idx, hub){
+			if (hub.selected && !hub.connected) {
+				if (!game.isChoosing && !game.spawning && !game.gameOver && !game.paused) {
+					$('canvas').setLayer(hub.arrowLayer, {
+						visible: true,
+						x2: event.pageX-game.specs.arrowXDis, y2: event.pageY-game.specs.arrowYDis,
+						strokeStyle: hub.colour,
+						arrowRadius: 10
+					}).moveLayer(hub.arrowLayer, layerCount-1);
+				}
+			}
+			if (hub.isPrimary) {
+				if (hub.selected && hub.connected && !hub.connected2) {
+					if (!game.isChoosing && !game.spawning && !game.gameOver && !game.paused) {
+						$('canvas').setLayer(hub.arrowLayer+"2", {
+							visible: true,
+							x2: event.pageX-game.specs.arrowXDis, y2: event.pageY-game.specs.arrowYDis,
+							strokeStyle: hub.colour,
+							arrowRadius: 10
+						}).moveLayer(hub.arrowLayer+"2", layerCount-1);
+					}
+				}
+			}
+			if (hub.isSecondary && hub.units == 0) {
+				$('canvas').setLayer(hub.arrowLayer, {
+					visible: false,
+					x2: hub.xpos, y2: hub.ypos,
+					strokeWidth: game.specs.minConnectWidth
+				});
+			} 
+		});
+	});
+};
+
 game.userInput = function(){
 	$(window).keypress(function(e) {
 		var key = e.which;
 		if (key == 32) {
 			game.initialize()
+			game.moveMouse();
 		}
 	});
+	this.moveMouse();
 };
 
 ///// Game Launch /////
 
 game.startGame = function(){
-	this.userInput();
 	this.initialize();
+	this.userInput();
 	this._intervalID = setInterval(this.run, 0);
 };
 
