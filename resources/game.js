@@ -443,6 +443,9 @@ game.secondarySelectColor = function(hub){
 game.secondaryStrokeOutline = function(hub, clr) {
 	return function(layer) {
 		if ((hub.primOne == clr) || (hub.primTwo == clr)) {
+			$('canvas').setLayer(layer, {
+				strokeWidth: 2*game.specs.hubOutline
+			});
 			if (clr == game.colors.primaryRed) {
 				return game.colors.outlineRedActive;
 			} else if (clr == game.colors.primaryBlue) {
@@ -452,8 +455,14 @@ game.secondaryStrokeOutline = function(hub, clr) {
 			}
 		}
 		if ((hub.primOne != game.colors.secondaryDefault) && (hub.primTwo != game.colors.secondaryDefault)) {
+			$('canvas').setLayer(layer, {
+				strokeWidth: 2*game.specs.hubOutline
+			});
 			return game.calcSecondaryColor(hub);
 		} else {
+			$('canvas').setLayer(layer, {
+				strokeWidth: game.specs.hubOutline
+			});
 			return clr;
 		}
 	}
