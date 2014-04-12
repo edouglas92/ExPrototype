@@ -1449,6 +1449,32 @@ game.run = (function(){
 	};
 })();
 
+game.mainloop = function(){
+	this.update();
+	this.draw();
+};
+
+game.run2 = function(){
+	var animFrame = window.requestAnimationFrame ||
+			window.webkitRequestAnimationFrame ||
+			window.mozRequestAnimationFrame    ||
+			window.oRequestAnimationFrame      ||
+			window.msRequestAnimationFrame     ||
+			null;
+	if (animFrame !== null) {
+		console.log("hi");
+		var canvas = $('canvas').get(0);
+		var recursiveAnim = function() {
+			game.mainloop();
+			animFrame(recursiveAnim, canvas);
+        };
+        animFrame(recursiveAnim, canvas);
+    } else {
+        var ONE_FRAME_TIME = 1000.0 / game.FPS;
+        setInterval(this.mainloop, ONE_FRAME_TIME);
+    }
+};
+
 
 ///// User Input /////
 
@@ -1498,7 +1524,8 @@ game.userInput = function(){
 		var key = e.which;
 		if (key == 32) {
 			game.initialize()
-			game.moveMouse();
+			game.userInput();
+			//game.run2();
 		}
 	});
 	this.moveMouse();
@@ -1509,6 +1536,7 @@ game.userInput = function(){
 game.startGame = function(){
 	this.initialize();
 	this.userInput();
+	//this.run2();
 	this._intervalID = setInterval(this.run, 0);
 };
 
