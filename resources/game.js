@@ -191,6 +191,7 @@ game.clickSecHub = function(hub){
 				});
 				if (!isPrimSelected) {
 					hub.colouring = game.secondarySelectColor(hub);
+					game.mixerSelected = true;
 				}
 			} else {
 				if (hub.connected) {
@@ -781,6 +782,10 @@ game.initializeHubs = function(){
 	$('canvas').removeLayer(xTerm.toString()+","+yTerm.toString());
 };
 
+game.randomIntFromInterval = function(min,max){
+    return Math.floor(Math.random()*(max-min+1)+min);
+};
+
 game.initializeTutorial = function(){
 	this.firstSelected = false;
 	this.firstConnected = false;
@@ -788,25 +793,27 @@ game.initializeTutorial = function(){
 	this.terminalFilled = false;
 	this.spawnSecond = false;
 	this.secondSelected = false;
-	var xPrim1 = Math.floor(Math.random()*this.xSpawns.length),
-	yPrim1 = Math.floor(Math.random()*this.ySpawns.length),
-	xPrim2 = Math.floor(Math.random()*this.xSpawns.length),
-	yPrim2 = Math.floor(Math.random()*this.ySpawns.length),
-	xSec = Math.floor(Math.random()*this.xSpawns.length),
-	ySec = Math.floor(Math.random()*this.ySpawns.length),
-	xTerm = Math.floor(Math.random()*this.xSpawns.length),
-	yTerm = Math.floor(Math.random()*this.ySpawns.length);
+	this.spawnTerm = false;
+	this.mixerSelected = false;
+	var xPrim1 = this.randomIntFromInterval(3, this.xSpawns.length-3),
+	yPrim1 = this.randomIntFromInterval(0, this.ySpawns.length-2),
+	xPrim2 = this.randomIntFromInterval(3, this.xSpawns.length-3),
+	yPrim2 = this.randomIntFromInterval(0, this.ySpawns.length-2),
+	xSec = this.randomIntFromInterval(3, this.xSpawns.length-3),
+	ySec = this.randomIntFromInterval(0, this.ySpawns.length-2),
+	xTerm = this.randomIntFromInterval(3, this.xSpawns.length-3),
+	yTerm = this.randomIntFromInterval(0, this.ySpawns.length-2);
 	while ((xPrim1 == xPrim2) && (yPrim1 == xPrim2)) {
-		xPrim2 = Math.floor(Math.random()*this.xSpawns.length);
-		yPrim2 = Math.floor(Math.random()*this.ySpawns.length);
+		xPrim2 = this.randomIntFromInterval(3, this.xSpawns.length-3);
+		yPrim2 = this.randomIntFromInterval(0, this.ySpawns.length-2);
 	}
 	while ((xPrim2 == xSec) && (yPrim2 == ySec)) {
-		xSec = Math.floor(Math.random()*this.xSpawns.length);
-		ySec = Math.floor(Math.random()*this.ySpawns.length);
+		xSec = this.randomIntFromInterval(3, this.xSpawns.length-3);
+		ySec = this.randomIntFromInterval(0, this.ySpawns.length-2);
 	}
 	while ((xTerm == xSec) && (yTerm == ySec)) {
-		xTerm = Math.floor(Math.random()*this.xSpawns.length);
-		yTerm = Math.floor(Math.random()*this.ySpawns.length);
+		xTerm = this.randomIntFromInterval(3, this.xSpawns.length-3);
+		yTerm = this.randomIntFromInterval(0, this.ySpawns.length-2);
 	}
 	var pIdx = Math.floor(Math.random()*6);
 	if (pIdx == 0) {
@@ -853,11 +860,9 @@ game.initializeTutorial = function(){
 	.drawText({
 		layer: true,
 		name: "firstPrimaryText",
-		fillStyle: game.firstPrimary.colour,
-		strokeStyle: 'black',
-		strokeWidth: 1,
+		fillStyle: 'black',
 		x: this.firstPrimary.xpos, y: this.firstPrimary.ypos+this.firstPrimary.radius+10,
-		fontSize: 13,
+		fontSize: 11,
 		fontFamily: 'Arial',
 		text: "Select a primary color by clicking it"
 	})
@@ -865,35 +870,53 @@ game.initializeTutorial = function(){
 		layer: true,
 		name: "firstSecondaryText",
 		visible: false,
-		strokeStyle: 'black',
-		strokeWidth: 1,
+		fillStyle: 'black',
 		x: this.firstMixer.xpos, y: this.firstMixer.ypos+this.firstPrimary.radius+10,
-		fontSize: 13,
+		fontSize: 11,
 		fontFamily: 'Arial',
 		text: "Fill a mixing bucket by clicking it"
 	})
 	.drawText({
 		layer: true,
 		name: "secondPrimaryText",
-		fillStyle: game.secondPrimary.colour,
+		fillStyle: this.secondPrimary.colour,
 		visible: false,
-		strokeStyle: 'black',
-		strokeWidth: 1,
+		fillStyle: 'black',
 		x: this.secondPrimary.xpos, y: this.secondPrimary.ypos+this.secondPrimary.radius+10,
-		fontSize: 13,
+		fontSize: 11,
 		fontFamily: 'Arial',
-		text: "Select another primary color"
+		text: "Select another primary color by clicking it"
 	})
 	.drawText({
 		layer: true,
 		name: "secondSecondaryText",
 		visible: false,
-		strokeStyle: 'black',
-		strokeWidth: 1,
+		fillStyle: 'black',
 		x: this.firstMixer.xpos, y: this.firstMixer.ypos+this.firstPrimary.radius+10,
-		fontSize: 13,
+		fontSize: 11,
 		fontFamily: 'Arial',
 		text: "Mix the colors together by clicking here"
+	})
+	.drawText({
+		layer: true,
+		name: "thirdSecondaryText",
+		visible: false,
+		fillStyle: 'black',
+		x: this.firstMixer.xpos, y: this.firstMixer.ypos+this.firstPrimary.radius+10,
+		fontSize: 11,
+		fontFamily: 'Arial',
+		text: "Select the new secondary color by clicking it"
+	})
+	.drawText({
+		layer: true,
+		name: "firstTerminalText",
+		fillStyle: this.firstTerminal.colour,
+		visible: false,
+		fillStyle: 'black',
+		x: this.firstTerminal.xpos, y: this.firstTerminal.ypos+this.firstTerminal.radius+10,
+		fontSize: 11,
+		fontFamily: 'Arial',
+		text: "Fill the depleting secondary color by clicking it"
 	});
 };
 
@@ -1401,6 +1424,7 @@ game.updateSecondaryHub = function(sHub){
 		sHub.isFull = true;
 	}
 	if ((sHub.pTwoCount > 0) && (sHub.pOneCount > 0)) {
+		this.secondConnected = true;
 		sHub.convertTimer -= 1;
 		if ((sHub.convertTimer < 0) && !sHub.isFull) {
 			sHub.convertTimer = this.timers.secondaryConvert;
@@ -1463,11 +1487,12 @@ game.updateSecondaryHub = function(sHub){
 };
 
 game.updateTerminalHub = function(tHub){
-	if (tHub.units == 0) {
+	if (tHub.units == 0 && this.terminalFilled) {
 		game.gameOver = true;
 		tHub.warnOpacity = 1.0;
 	}
 	if (tHub.units == tHub.capacity) {
+		this.terminalFilled = true;
 		tHub.isFull = true;
 	}
 	tHub.dropTimer -= 1;
@@ -1570,6 +1595,21 @@ game.updateTutorial = function(){
 		if (this.secondSelected) {
 			$('canvas').removeLayer("secondPrimaryText")
 			.setLayer("secondSecondaryText", {
+				visible: true
+			});
+		}
+		if (this.secondConnected && !this.spawnTerm) {
+			$('canvas').removeLayer("secondSecondaryText")
+			.setLayer("thirdSecondaryText", {
+				visible: true
+			});
+			this.firstTerminal.units = this.firstTerminal.capacity-1;
+			this.terminalHubs.push(this.firstTerminal);
+			this.spawnTerm = true;
+		}
+		if (this.mixerSelected) {
+			$('canvas').removeLayer("thirdSecondaryText")
+			.setLayer("firstTerminalText", {
 				visible: true
 			});
 		}
