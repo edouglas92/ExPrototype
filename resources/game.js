@@ -172,6 +172,7 @@ game.clickSecHub = function(hub){
 							isPrimSelected = true;
 							hub.colour = game.calcSecondaryColor(hub);
 							hub.colouring = game.calcSecondaryColor(hub);
+							game.doubleConnected = true;
 						} else if (!hub.pTwoFull && ((pHub.colour == hub.primTwo) ||
 							(hub.primTwo == game.colors.secondaryDefault)) && 
 							!hub.primTwoConnected && (pHub.colour != hub.primOne)) {
@@ -186,6 +187,7 @@ game.clickSecHub = function(hub){
 							isPrimSelected = true;
 							hub.colour = game.calcSecondaryColor(hub);
 							hub.colouring = game.calcSecondaryColor(hub);
+							game.doubleConnected = true;
 						}
 					}
 				});
@@ -218,6 +220,10 @@ game.clickTermHub = function(hub){
 						sHub.connection = hub;
 						sHub.selected = false;
 						sHub.colouring = sHub.colour;
+						game.terminalConnected = true;
+						if (hub == game.secondTerminal) {
+							game.secondConnected = true;
+						}
 					}
 				}
 			});
@@ -633,11 +639,12 @@ game.initializeTerminalHub = function(xcoord, ycoord, clr, sClr, num){
 	hub.fillLayer = clr+"TFill"+num.toString();
 	hub.countLayer = clr+"TCount"+num.toString();
 	hub.warnLayer = clr+"TWarn"+num.toString();
+	hub.outlineLayer = clr+"TOutline"+num.toString();
 	hub.isLow = false;
 	hub.warnOpacity = 0;
 	hub.warnUp = true;
 	$('canvas').drawArc({
-		layer: true,
+		layer: true, name: hub.outlineLayer,
 		strokeStyle: hub.colour,
   		strokeWidth: game.specs.hubOutline,
   		x: hub.xpos, y: hub.ypos,
@@ -685,6 +692,23 @@ game.initializeTerminalHub = function(xcoord, ycoord, clr, sClr, num){
 	});
 	return hub;
 };
+
+game.removeTerminal = function(hub){
+	$('canvas').removeLayer(hub.outlineLayer)
+	.removeLayer(hub.outlineLayer)
+	.removeLayer(hub.clickLayer)
+	.removeLayer(hub.warnLayer)
+	.removeLayer(hub.fillLayer)
+	.removeLayer(hub.countLayer);
+	if (hub.colour == game.colors.secondaryPurple) {
+		this.purpleTerms -= 1;
+	} else if (hub.colour == game.colors.secondaryGreen) {
+		this.greenTerms -= 1;
+	} else {
+		this.orangeTerms -= 1;
+	}
+	this.terminalHubs.splice(this.terminalHubs.indexOf(hub), 1);
+}
 
 game.addPurpleTerm = function(xcoord, ycoord){
 	this.purpleTerms += 1;
@@ -789,77 +813,85 @@ game.randomIntFromInterval = function(min,max){
 game.initializeTutorial = function(){
 	this.firstSelected = false;
 	this.firstConnected = false;
-	this.secondConnected = false;
-	this.terminalFilled = false;
-	this.spawnSecond = false;
 	this.secondSelected = false;
-	this.spawnTerm = false;
+	this.secondConnected = false;
 	this.mixerSelected = false;
-	var xPrim1 = this.randomIntFromInterval(3, this.xSpawns.length-3),
-	yPrim1 = this.randomIntFromInterval(0, this.ySpawns.length-2),
-	xPrim2 = this.randomIntFromInterval(3, this.xSpawns.length-3),
-	yPrim2 = this.randomIntFromInterval(0, this.ySpawns.length-2),
-	xSec = this.randomIntFromInterval(3, this.xSpawns.length-3),
-	ySec = this.randomIntFromInterval(0, this.ySpawns.length-2),
-	xTerm = this.randomIntFromInterval(3, this.xSpawns.length-3),
-	yTerm = this.randomIntFromInterval(0, this.ySpawns.length-2);
-	while ((xPrim1 == xPrim2) && (yPrim1 == xPrim2)) {
-		xPrim2 = this.randomIntFromInterval(3, this.xSpawns.length-3);
-		yPrim2 = this.randomIntFromInterval(0, this.ySpawns.length-2);
-	}
-	while ((xPrim2 == xSec) && (yPrim2 == ySec)) {
-		xSec = this.randomIntFromInterval(3, this.xSpawns.length-3);
-		ySec = this.randomIntFromInterval(0, this.ySpawns.length-2);
-	}
-	while ((xTerm == xSec) && (yTerm == ySec)) {
-		xTerm = this.randomIntFromInterval(3, this.xSpawns.length-3);
-		yTerm = this.randomIntFromInterval(0, this.ySpawns.length-2);
-	}
-	var pIdx = Math.floor(Math.random()*6);
+	this.terminalConnected = false;
+	this.doubleConnected = false;
+	this.terminal2Connected = false;
+	this.spawnPrimary2 = false;
+	this.spawnTerm = false;
+	this.spawnMixer2 = false;
+	this.spawnTerm2 = false;
+	var xPrim1 = 5, yPrim1 = 2,
+	xPrim2 = 9, yPrim2 = 2,
+	xSec1 = 7, ySec1 = 4,
+	xSec2 = 11, ySec2 = 4,
+	xTerm1 = 7, yTerm1 = 6,
+	xTerm2 = 11, yTerm2 = 6;
+	var pIdx = this.randomIntFromInterval(0,5);
 	if (pIdx == 0) {
 		this.addRedHub(this.xSpawns[xPrim1], this.ySpawns[yPrim1]);
 		this.addBlueHub(this.xSpawns[xPrim2], this.ySpawns[yPrim2]);
-		this.addPurpleTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
+		this.addPurpleTerm(this.xSpawns[xTerm1], this.ySpawns[yTerm1]);
+		this.addGreenTerm(this.xSpawns[xTerm2], this.ySpawns[yTerm2]);
 	} else if (pIdx == 1) {
 		this.addBlueHub(this.xSpawns[xPrim1], this.ySpawns[yPrim1]);
 		this.addRedHub(this.xSpawns[xPrim2], this.ySpawns[yPrim2]);
-		this.addPurpleTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
+		this.addPurpleTerm(this.xSpawns[xTerm1], this.ySpawns[yTerm1]);
+		this.addOrangeTerm(this.xSpawns[xTerm2], this.ySpawns[yTerm2]);
 	} else if (pIdx == 2) {
-		this.addRedHub(this.xSpawns[xPrim1], this.ySpawns[yPrim1]);
-		this.addYellowHub(this.xSpawns[xPrim2], this.ySpawns[yPrim2]);
-		this.addOrangeTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
-	} else if (pIdx == 3) {
 		this.addYellowHub(this.xSpawns[xPrim1], this.ySpawns[yPrim1]);
 		this.addRedHub(this.xSpawns[xPrim2], this.ySpawns[yPrim2]);
-		this.addOrangeTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
+		this.addOrangeTerm(this.xSpawns[xTerm1], this.ySpawns[yTerm1]);
+		this.addPurpleTerm(this.xSpawns[xTerm2], this.ySpawns[yTerm2]);
+	} else if (pIdx == 3) {
+		this.addRedHub(this.xSpawns[xPrim1], this.ySpawns[yPrim1]);
+		this.addYellowHub(this.xSpawns[xPrim2], this.ySpawns[yPrim2]);
+		this.addOrangeTerm(this.xSpawns[xTerm1], this.ySpawns[yTerm1]);
+		this.addGreenTerm(this.xSpawns[xTerm2], this.ySpawns[yTerm2]);
 	} else if (pIdx == 4) {
 		this.addYellowHub(this.xSpawns[xPrim1], this.ySpawns[yPrim1]);
 		this.addBlueHub(this.xSpawns[xPrim2], this.ySpawns[yPrim2]);
-		this.addGreenTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
+		this.addGreenTerm(this.xSpawns[xTerm1], this.ySpawns[yTerm1]);
+		this.addPurpleTerm(this.xSpawns[xTerm2], this.ySpawns[yTerm2]);
 	} else {
 		this.addBlueHub(this.xSpawns[xPrim1], this.ySpawns[yPrim1]);
 		this.addYellowHub(this.xSpawns[xPrim2], this.ySpawns[yPrim2]);
-		this.addGreenTerm(this.xSpawns[xTerm], this.ySpawns[yTerm]);
+		this.addGreenTerm(this.xSpawns[xTerm1], this.ySpawns[yTerm1]);
+		this.addOrangeTerm(this.xSpawns[xTerm2], this.ySpawns[yTerm2]);
 	}
-	this.addSecondaryHub(this.xSpawns[xSec], this.ySpawns[ySec]);
-	this.isSpawned[xTerm.toString()+","+yTerm.toString()] = true;
-	this.isSpawned[xSec.toString()+","+ySec.toString()] = true;
+	this.addSecondaryHub(this.xSpawns[xSec1], this.ySpawns[ySec1]);
+	this.addSecondaryHub(this.xSpawns[xSec2], this.ySpawns[ySec2]);
+	this.isSpawned[xTerm1.toString()+","+yTerm1.toString()] = true;
+	this.isSpawned[xTerm2.toString()+","+yTerm2.toString()] = true;
+	this.isSpawned[xSec1.toString()+","+ySec1.toString()] = true;
+	this.isSpawned[xSec2.toString()+","+ySec2.toString()] = true;
 	this.isSpawned[xPrim1.toString()+","+yPrim1.toString()] = true;
 	this.isSpawned[xPrim2.toString()+","+yPrim2.toString()] = true;
 	this.firstPrimary = this.primaryHubs[0];
 	this.secondPrimary = this.primaryHubs[1];
 	this.firstMixer = this.secondaryHubs[0];
+	this.secondMixer = this.secondaryHubs[1];
 	this.firstTerminal = this.terminalHubs[0];
+	this.secondTerminal = this.terminalHubs[1];
 	this.primaryHubs = [];
 	this.terminalHubs = [];
+	this.secondaryHubs = [];
 	this.primaryHubs.push(this.firstPrimary);
-	$('canvas').removeLayer(xSec.toString()+","+ySec.toString())
+	this.secondaryHubs.push(this.firstMixer);
+	$('canvas').removeLayer(xSec1.toString()+","+ySec1.toString())
+	.removeLayer(xSec2.toString()+","+ySec2.toString())
 	.removeLayer(xPrim1.toString()+","+yPrim1.toString())
 	.removeLayer(xPrim2.toString()+","+yPrim2.toString())
-	.removeLayer(xTerm.toString()+","+yTerm.toString())
+	.removeLayer(xTerm1.toString()+","+yTerm1.toString())
+	.removeLayer(xTerm2.toString()+","+yTerm2.toString())
+	.setLayer(this.secondMixer.clickLayer, {
+		visible: false
+	})
 	.drawText({
 		layer: true,
-		name: "firstPrimaryText",
+		name: "firstPrimary1Text",
 		fillStyle: 'black',
 		x: this.firstPrimary.xpos, y: this.firstPrimary.ypos+this.firstPrimary.radius+10,
 		fontSize: 11,
@@ -868,7 +900,7 @@ game.initializeTutorial = function(){
 	})
 	.drawText({
 		layer: true,
-		name: "firstSecondaryText",
+		name: "firstSecondary1Text",
 		visible: false,
 		fillStyle: 'black',
 		x: this.firstMixer.xpos, y: this.firstMixer.ypos+this.firstPrimary.radius+10,
@@ -878,7 +910,7 @@ game.initializeTutorial = function(){
 	})
 	.drawText({
 		layer: true,
-		name: "secondPrimaryText",
+		name: "firstPrimary2Text",
 		fillStyle: this.secondPrimary.colour,
 		visible: false,
 		fillStyle: 'black',
@@ -889,7 +921,7 @@ game.initializeTutorial = function(){
 	})
 	.drawText({
 		layer: true,
-		name: "secondSecondaryText",
+		name: "secondSecondary1Text",
 		visible: false,
 		fillStyle: 'black',
 		x: this.firstMixer.xpos, y: this.firstMixer.ypos+this.firstPrimary.radius+10,
@@ -899,7 +931,7 @@ game.initializeTutorial = function(){
 	})
 	.drawText({
 		layer: true,
-		name: "thirdSecondaryText",
+		name: "thirdSecondary1Text",
 		visible: false,
 		fillStyle: 'black',
 		x: this.firstMixer.xpos, y: this.firstMixer.ypos+this.firstPrimary.radius+10,
@@ -909,7 +941,7 @@ game.initializeTutorial = function(){
 	})
 	.drawText({
 		layer: true,
-		name: "firstTerminalText",
+		name: "firstTerminal1Text",
 		fillStyle: this.firstTerminal.colour,
 		visible: false,
 		fillStyle: 'black',
@@ -917,6 +949,47 @@ game.initializeTutorial = function(){
 		fontSize: 11,
 		fontFamily: 'Arial',
 		text: "Fill the depleting secondary color by clicking it"
+	})
+	.drawText({
+		layer: true,
+		name: "firstTerminal2Text",
+		fillStyle: this.firstTerminal.colour,
+		visible: false,
+		fillStyle: 'black',
+		x: this.firstTerminal.xpos, y: this.firstTerminal.ypos+this.firstTerminal.radius+10,
+		fontSize: 11,
+		fontFamily: 'Arial',
+		text: "Don't let the secondary color bucket empty"
+	})
+	.drawText({
+		layer: true,
+		name: "fourthSecondary1Text",
+		visible: false,
+		fillStyle: 'black',
+		x: this.firstMixer.xpos, y: this.firstMixer.ypos+this.firstMixer.radius+10,
+		fontSize: 11,
+		fontFamily: 'Arial',
+		text: "Mix a primary color here"
+	})
+	.drawText({
+		layer: true,
+		name: "firstSecondary2Text",
+		visible: false,
+		fillStyle: 'black',
+		x: this.secondMixer.xpos, y: this.secondMixer.ypos+this.secondMixer.radius+10,
+		fontSize: 11,
+		fontFamily: 'Arial',
+		text: "Mix the same primary color here"
+	})
+	.drawText({
+		layer: true,
+		name: "secondPrimary2Text",
+		visible: false,
+		fillStyle: 'black',
+		x: this.secondPrimary.xpos, y: this.secondPrimary.ypos+this.secondPrimary.radius+10,
+		fontSize: 11,
+		fontFamily: 'Arial',
+		text: "Primary colors can mix into 2 buckets at one time"
 	});
 };
 
@@ -1097,6 +1170,7 @@ game.initialize = function(){
   		fillStyle: game.colors.primaryYellow,
   		start: 60, end: 180
 	});
+	this.moveMouse();
 };
 
 ///// Drawing /////
@@ -1487,12 +1561,11 @@ game.updateSecondaryHub = function(sHub){
 };
 
 game.updateTerminalHub = function(tHub){
-	if (tHub.units == 0 && this.terminalFilled) {
+	if (tHub.units == 0 && this.terminal2Connected) {
 		game.gameOver = true;
 		tHub.warnOpacity = 1.0;
 	}
 	if (tHub.units == tHub.capacity) {
-		this.terminalFilled = true;
 		tHub.isFull = true;
 	}
 	tHub.dropTimer -= 1;
@@ -1543,7 +1616,7 @@ game.updateHubs = function(){
 
 game.updateUpgrade = function(){
 	this.upgradeTimer -= 1;
-	if (this.upgradeTimer < 0 && this.terminalFilled) {
+	if (this.upgradeTimer < 0 && this.terminal2Connected) {
 		this.isChoosing = true;
 		this.upgradeTimer = game.timers.upgradeTimer;
 	}
@@ -1551,7 +1624,7 @@ game.updateUpgrade = function(){
 
 game.updateTerminalTimer = function(){
 	this.terminalTimer -= 1;
-	if (this.terminalTimer < 0 && this.terminalFilled) {
+	if (this.terminalTimer < 0 && this.terminal2Connected) {
 		this.terminalTimer = game.timers.terminalTimer;
 		var xSpawn = Math.floor(Math.random()*(this.xSpawns.length)),
 		ySpawn = Math.floor(Math.random()*(this.ySpawns.length));
@@ -1577,41 +1650,62 @@ game.updateTerminalTimer = function(){
 game.updateTutorial = function(){
 	if (this.tutorialOn) {
 		if (this.firstSelected) {
-			$('canvas').removeLayer("firstPrimaryText")
-			.setLayer("firstSecondaryText", {
+			$('canvas').removeLayer("firstPrimary1Text")
+			.setLayer("firstSecondary1Text", {
 				visible: true
 			});
 		}
-		if (this.firstConnected && !this.spawnSecond) {
-			$('canvas').removeLayer("firstSecondaryText")
-			.setLayer("secondPrimaryText", {
+		if (this.firstConnected && !this.spawnPrimary2) {
+			$('canvas').removeLayer("firstSecondary1Text")
+			.setLayer("firstPrimary2Text", {
 				visible: true
 			});
 			this.secondPrimary.units = 0;
 			this.primaryHubs.push(this.secondPrimary);
-			this.spawnSecond = true;
+			this.spawnPrimary2 = true;
 			this.moveMouse();
 		}
 		if (this.secondSelected) {
-			$('canvas').removeLayer("secondPrimaryText")
-			.setLayer("secondSecondaryText", {
+			$('canvas').removeLayer("firstPrimary2Text")
+			.setLayer("secondSecondary1Text", {
 				visible: true
 			});
 		}
 		if (this.secondConnected && !this.spawnTerm) {
-			$('canvas').removeLayer("secondSecondaryText")
-			.setLayer("thirdSecondaryText", {
+			$('canvas').removeLayer("secondSecondary1Text")
+			.setLayer("thirdSecondary1Text", {
 				visible: true
 			});
 			this.firstTerminal.units = this.firstTerminal.capacity-1;
 			this.terminalHubs.push(this.firstTerminal);
 			this.spawnTerm = true;
 		}
-		if (this.mixerSelected) {
-			$('canvas').removeLayer("thirdSecondaryText")
-			.setLayer("firstTerminalText", {
+		if (this.mixerSelected && this.secondConnected) {
+			$('canvas').removeLayer("thirdSecondary1Text")
+			.setLayer("firstTerminal1Text", {
 				visible: true
 			});
+		}
+		if (this.terminalConnected && !this.spawnMixer2) {
+			$('canvas').removeLayer("firstTerminal1Text")
+			.setLayer("firstTerminal2Text", {
+				visible: true
+			})
+			.setLayer(this.secondMixer.clickLayer, {
+				visible: true
+			})
+			.setLayer("fourthSecondary1Text", {
+				visible: true
+			})
+			.setLayer("firstSecondary2Text", {
+				visible: true
+			})
+			.setLayer("secondPrimary2Text", {
+				visible: true
+			});
+			this.secondaryHubs.push(this.secondMixer);
+			this.spawnMixer2 = true;
+			this.secondPrimary.units = this.secondPrimary.capacity;
 		}
 	}
 };
@@ -1721,12 +1815,16 @@ game.userInput = function(){
 	$(window).keypress(function(e) {
 		var key = e.which;
 		if (key == 32) {
+			$.each(game.primaryHubs, function(idx, hub){
+				hub.selected = false;
+			});
+			$.each(game.secondaryHubs, function(idx, hub){
+				hub.selected = false;
+			});
 			game.initialize()
-			game.userInput();
 			//game.run2();
 		}
 	});
-	this.moveMouse();
 };
 
 ///// Game Launch /////
