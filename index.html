@@ -4,11 +4,17 @@
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-	<title>Subtradd</title>
+	<title>Color Buckets</title>
 	<link rel="stylesheet" href="resources/style.css">
+	<link rel="stylesheet" href="resources/bootstrap.min.css">
+	<link href='http://fonts.googleapis.com/css?family=Bowlby+One+SC' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
+	<div id="title">
+		<h1 id="game-title">Color Buckets</h1>
+		<h5>A game by Eric Douglas, Tim Alander, Denzel Rice, and Rohan Natraj</h5>
+	</div>
 	<div id="game_div">
 		<canvas height="650" width="1150"></canvas>
 	</div>
@@ -16,6 +22,16 @@
 	<script src="resources/jquery-2.1.0.min.js"></script>
 	<script src="resources/jcanvas.min.js"></script>
 	<script src="resources/game.js"></script>
+	<div id="instructions">
+		<h1><i>Instructions</i></h1>
+		<h3><strong>Goal</strong>: Replenish the secondary color buckets before they run out by combining primary colors in the multi-colored mixing buckets.</h3>
+		<ul>
+			<li>Connect buckets by clicking on them in sequence.</li>
+			<li>Primary color buckets can be disconnected by double clicking on them.</li>
+			<li>Primary color buckets can only be connected to two different mixing buckets at a time.</li>
+			<li>Secndary color buckets will flash when they get low on supplies! Watch out &mdash; if they get too low it's <i>game over.<i></li>
+		</ul>
+	</div>
 </body>
 
 </html>
